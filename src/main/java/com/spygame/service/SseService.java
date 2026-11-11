@@ -126,6 +126,13 @@ public class SseService {
     }
 
     /**
+     * Notifies all players that a new penalty has been spun by the Host.
+     */
+    public void broadcastPenaltyUpdated(String roomCode, String penalty) {
+        broadcast(roomCode, "penalty-updated", penalty);
+    }
+
+    /**
      * Notifies players that the host restarted the game back to lobby.
      */
     public void broadcastGameRestarted(String roomCode) {

@@ -560,10 +560,11 @@
       }
 
       // 7. Penalty Wheel Canvas & Animation
+      let isWheelSpinning = false;
+
       function initPenaltyWheel() {
         const canvas = document.getElementById('penalty-wheel-canvas');
-        const spinBtn = document.getElementById('btn-spin-wheel');
-        if (!canvas || !spinBtn) return;
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const numSlices = 8;
         const colors = ['#FFB800', '#FF6B8B', '#00E5A3', '#B197FC', '#FFD43B', '#FF8787', '#69DB7C', '#4DABF7'];
@@ -615,8 +616,11 @@
         let currentAngle = 0;
         drawWheel(currentAngle);
 
-        spinBtn.addEventListener('click', function() {
-          spinBtn.disabled = true;
+        window.runPenaltyWheelSpin = function(newPenalty) {
+          if (isWheelSpinning) return;
+          isWheelSpinning = true;
+          const spinBtn = document.getElementById('btn-spin-wheel');
+          if (spinBtn) spinBtn.disabled = true;
           if (window.CatAudio) CatAudio.playPenaltySpin();
 
           const totalSpinRads = (Math.PI * 2 * 6) + Math.random() * Math.PI * 2;
@@ -634,8 +638,13 @@
             if (progress < 1) {
               requestAnimationFrame(animateSpin);
             } else {
-              spinBtn.disabled = false;
+              isWheelSpinning = false;
+              if (spinBtn) spinBtn.disabled = false;
               if (window.CatAudio) CatAudio.playMeow();
+              const textEl = document.getElementById('penalty-result-text');
+              if (textEl && newPenalty) {
+                textEl.textContent = newPenalty;
+              }
               const box = document.getElementById('penalty-result-box');
               if (box) {
                 box.classList.add('animate-bounce');
@@ -644,7 +653,27 @@
             }
           }
           requestAnimationFrame(animateSpin);
-        });
+        };
+
+        const spinBtn = document.getElementById('btn-spin-wheel');
+        if (spinBtn) {
+          spinBtn.addEventListener('click', async function() {
+            spinBtn.disabled = true;
+            try {
+              const res = await fetch(`${basePath}api/rooms/${roomCode}/spin-penalty?hostId=${encodeURIComponent(playerId)}`, {
+                method: 'POST'
+              });
+              const data = await res.json();
+              if (data && data.penalty) {
+                window.runPenaltyWheelSpin(data.penalty);
+              } else {
+                spinBtn.disabled = false;
+              }
+            } catch (err) {
+              spinBtn.disabled = false;
+            }
+          });
+        }
       }
 
       // 7b. Turn Discussion Countdown Timer
@@ -735,9 +764,13 @@
             if (window.CatAudio) CatAudio.playHiss();
             btn.disabled = true;
             try {
-              await fetch(`${basePath}api/rooms/${roomCode}/vote?voterId=${encodeURIComponent(playerId)}&targetId=${encodeURIComponent(targetId)}`, {
+              const res = await fetch(`${basePath}api/rooms/${roomCode}/vote?voterId=${encodeURIComponent(playerId)}&targetId=${encodeURIComponent(targetId)}`, {
                 method: 'POST'
               });
+              const data = await res.json();
+              if (data && data.allVoted) {
+                await refreshGameView();
+              }
             } catch (e) {
               btn.disabled = false;
             }
@@ -750,7 +783,12 @@
           concludeBtn.addEventListener('click', async function() {
             concludeBtn.disabled = true;
             try {
-              await fetch(`${basePath}api/rooms/${roomCode}/conclude-vote?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+              const res = await fetch(`${basePath}api/rooms/${roomCode}/conclude-vote?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+              if (res.ok) {
+                await refreshGameView();
+              } else {
+                concludeBtn.disabled = false;
+              }
             } catch (e) {
               concludeBtn.disabled = false;
             }
@@ -782,6 +820,9 @@
                 feedbackEl.className = 'small mt-2 text-success fw-bold';
                 feedbackEl.classList.remove('d-none');
               }
+              setTimeout(() => {
+                refreshGameView();
+              }, 600);
             } else {
               if (window.CatAudio) CatAudio.playHiss();
               if (feedbackEl) {
@@ -807,21 +848,47 @@
           });
         }
 
-        // 20s Countdown Timer for Last Guess
+        // 20s Countdown Timer for Last Guess (Synchronized with Server End Time)
         const countdownEl = document.getElementById('countdown-timer-num');
         if (countdownEl) {
           if (lastGuessInterval) clearInterval(lastGuessInterval);
-          let secondsLeft = 20;
-          lastGuessInterval = setInterval(function() {
-            secondsLeft--;
-            if (countdownEl) countdownEl.textContent = secondsLeft;
-            if (window.CatAudio) CatAudio.playTick();
-            if (secondsLeft <= 0) {
+          const endTime = parseInt(countdownEl.getAttribute('data-end-time') || '0', 10);
+          let isTimingOut = false;
+
+          async function triggerTimeoutAndRefresh() {
+            if (isTimingOut) return;
+            isTimingOut = true;
+            if (lastGuessInterval) {
               clearInterval(lastGuessInterval);
-              // Trigger timeout API so game transitions to RESULT or ROUND_SUMMARY
-              fetch(`${basePath}api/rooms/${roomCode}/last-guess-timeout`, { method: 'POST' });
+              lastGuessInterval = null;
             }
-          }, 1000);
+            if (countdownEl) countdownEl.textContent = '0';
+            try {
+              await fetch(`${basePath}api/rooms/${roomCode}/last-guess-timeout`, { method: 'POST' });
+            } catch (e) {
+              console.error(e);
+            }
+            await refreshGameView();
+          }
+
+          function tick() {
+            let secondsLeft = 20;
+            if (endTime > 0) {
+              const diff = Math.ceil((endTime - Date.now()) / 1000);
+              secondsLeft = Math.max(0, diff);
+            } else {
+              secondsLeft = Math.max(0, parseInt(countdownEl.textContent || '20', 10) - 1);
+            }
+            if (countdownEl) countdownEl.textContent = secondsLeft;
+            if (secondsLeft > 0) {
+              if (window.CatAudio) CatAudio.playTick();
+            } else {
+              triggerTimeoutAndRefresh();
+            }
+          }
+
+          tick();
+          lastGuessInterval = setInterval(tick, 1000);
         }
 
         // Host Next Round from ROUND_SUMMARY
@@ -830,7 +897,12 @@
           const nextRoundBtn = document.getElementById('btn-next-round');
           if (nextRoundBtn) nextRoundBtn.disabled = true;
           try {
-            await fetch(`${basePath}api/rooms/${roomCode}/next-round?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+            const res = await fetch(`${basePath}api/rooms/${roomCode}/next-round?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+            if (res.ok) {
+              await refreshGameView();
+            } else {
+              if (nextRoundBtn) nextRoundBtn.disabled = false;
+            }
           } catch (err) {
             if (nextRoundBtn) nextRoundBtn.disabled = false;
           }
@@ -923,6 +995,14 @@
           console.log('🐾 [SSE] game-ended received');
           if (window.CatAudio) CatAudio.playGong();
           await refreshGameView();
+        });
+
+        // Event: penalty-updated (Host spun a new penalty on the result screen)
+        eventSource.addEventListener('penalty-updated', function(e) {
+          console.log('🐾 [SSE] penalty-updated received:', e.data);
+          if (e.data && window.runPenaltyWheelSpin) {
+            window.runPenaltyWheelSpin(e.data);
+          }
         });
 
         // Event: game-restarted

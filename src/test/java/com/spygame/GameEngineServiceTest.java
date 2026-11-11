@@ -142,8 +142,13 @@ class GameEngineServiceTest {
 
         assertTrue(result.isTie());
         assertNull(result.getEliminatedPlayer());
-        assertEquals(RoomStatus.PLAYING, room.getStatus(), "Should return to PLAYING on tie vote");
+        assertEquals(RoomStatus.ROUND_SUMMARY, room.getStatus(), "Should advance to ROUND_SUMMARY on tie vote");
+        assertNull(room.getEliminatedPlayerId(), "No player eliminated on tie vote");
         assertEquals(4, room.getAlivePlayers().size(), "All players should still be alive");
+
+        // Host clicking next round advances to PLAYING
+        gameEngineService.startNextRound(room);
+        assertEquals(RoomStatus.PLAYING, room.getStatus(), "Next round should be PLAYING");
     }
 
     @Test
@@ -382,5 +387,17 @@ class GameEngineServiceTest {
             assertNull(p.getSecretWord());
             assertFalse(p.isHasVoted());
         }
+    }
+
+    @Test
+    void testSpinNewPenaltyChangesSelectedPenalty() {
+        GameRoom room = createSampleRoom(3, false);
+        String initial = gameEngineService.pickRandomPenalty();
+        room.setSelectedPenalty(initial);
+
+        String newPenalty = gameEngineService.spinNewPenalty(room);
+        assertNotNull(newPenalty);
+        assertFalse(newPenalty.isBlank());
+        assertEquals(newPenalty, room.getSelectedPenalty());
     }
 }

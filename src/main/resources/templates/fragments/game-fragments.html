@@ -6,7 +6,7 @@
 <div th:fragment="game-container" id="game-main-container">
 
   <!-- Persistent Elimination Alert for Dead Players -->
-  <div th:if="${currentPlayer != null and !currentPlayer.isAlive and room.status.name() != 'RESULT'}"
+  <div th:if="${currentPlayer != null and !currentPlayer.isAlive and room.status.name() != 'RESULT' and room.status.name() != 'LAST_GUESS'}"
        class="alert alert-dark border border-3 border-dark rounded-4 p-3 mb-3 text-center animate-fade-in"
        style="background: #2D2744; color: #FFFFFF; box-shadow: 0 4px 0 var(--cat-dark-deep);">
     <div class="fs-2 mb-1">👻 🐾 ☠️</div>
@@ -176,6 +176,7 @@
           <div>
             <span class="fw-bold text-dark" style="font-family: var(--cat-font-heading);" th:text="${p.nickname}">Mèo Thám Tử</span>
             <span th:if="${p.isHost}" class="badge cat-badge-gold py-0 px-2 ms-1">👑</span>
+            <span th:if="${currentPlayer != null and p.id == currentPlayer.id}" class="badge cat-badge-pink py-0 px-2 ms-1">Bạn</span>
           </div>
         </div>
 
@@ -297,26 +298,14 @@
 <!-- ========================================================================= -->
 <div th:fragment="round-summary-view" class="animate-fade-in">
 
-  <!-- Elimination Banner Header -->
-  <div class="cat-card p-3 mb-3 text-center" style="background: #FFE3E3; border: 3px solid var(--cat-dark);">
-    <div class="fs-1 mb-1">⚖️ 🔨 😾</div>
-    <h2 class="fs-3 fw-bold text-danger mb-1" style="font-family: var(--cat-font-heading);">
-      Phán Quyết Tòa Án!
-    </h2>
-    <div class="small text-muted fw-bold">
-      Phiên tòa bỏ phiếu đã kết thúc và một con mèo đã bị trục xuất!
-    </div>
-  </div>
-
-  <!-- Eliminated Cat Spotlight -->
-  <div class="cat-card p-3 mb-3 text-center" style="background: #FFF8E7;">
-    <div class="cat-avatar-circle mx-auto mb-2" style="width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center;"
-         th:if="${eliminatedPlayer != null}">
+  <!-- Case 1: An Eliminated Cat is Spotlighted -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: #FFF8E7;" th:if="${eliminatedPlayer != null}">
+    <div class="cat-avatar-circle mx-auto mb-2" style="width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center;">
       <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${eliminatedPlayer.avatarIndex})}"></div>
     </div>
 
     <div class="fs-4 fw-bold text-dark" style="font-family: var(--cat-font-heading);"
-         th:text="${eliminatedPlayer != null ? eliminatedPlayer.nickname : 'Mèo Vô Số Tội'}">
+         th:text="${eliminatedPlayer.nickname}">
       Mèo Vô Số Tội
     </div>
 
@@ -326,6 +315,23 @@
 
     <div class="small text-muted fst-italic">
       Danh tính thực sự của con mèo này vẫn được giữ kín cho đến cuối ván đấu meow~
+    </div>
+  </div>
+
+  <!-- Case 2: Tie Vote / No Cat Eliminated -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: #FFF8E7;" th:unless="${eliminatedPlayer != null}">
+    <div class="fs-1 mb-2">⚖️ 🤝 😺</div>
+
+    <div class="fs-4 fw-bold text-dark" style="font-family: var(--cat-font-heading);">
+      Phiên Tòa Bất Phân Thắng Bại!
+    </div>
+
+    <div class="badge cat-badge-gold text-dark fs-6 px-3 py-1 my-2 border border-dark">
+      ⚖️ Hòa phiếu bầu - Không ai bị loại!
+    </div>
+
+    <div class="small text-muted fst-italic">
+      Số phiếu bầu bằng nhau nên chưa có con mèo nào bị kết tội trong vòng này meow~
     </div>
   </div>
 
@@ -405,7 +411,7 @@
       Đã bắt được Gián Điệp / Mr. White! Cơ hội cuối cùng để cướp chiến thắng!
     </div>
     <div class="badge cat-badge-pink fs-4 px-4 py-2" id="last-guess-countdown">
-      ⏱️ <span id="countdown-timer-num">20</span>s
+      ⏱️ <span id="countdown-timer-num" th:data-end-time="${room.lastGuessEndTime != null ? room.lastGuessEndTime.toEpochMilli() : 0}">20</span>s
     </div>
   </div>
 
@@ -568,7 +574,8 @@
     <h3 class="h6 fw-bold mb-2" style="font-family: var(--cat-font-heading);">
       🎡 Vòng Quay Hình Phạt Cho Phe Thua Cuộc
     </h3>
-    <div class="small text-muted mb-3">Nhấn nút bên dưới để quay hình phạt ngẫu nhiên đầy hài hước!</div>
+    <div class="small text-muted mb-3" th:if="${isHost}">Nhấn nút bên dưới để quay hình phạt ngẫu nhiên đầy hài hước!</div>
+    <div class="small text-muted mb-3" th:unless="${isHost}">Đang chờ Chánh Án quay vòng quay hình phạt cho phe thua meow~</div>
 
     <!-- Canvas Wheel -->
     <div class="position-relative d-inline-block mb-3">
@@ -578,17 +585,20 @@
       </div>
     </div>
 
-    <!-- Spin Button -->
-    <div class="mb-3">
+    <!-- Spin Button (Host Only) -->
+    <div class="mb-3" th:if="${isHost}">
       <button type="button" class="cat-btn cat-btn-pink px-4 py-2 fs-5" id="btn-spin-wheel">
         <span>🎡 Quay Hình Phạt!</span>
       </button>
+    </div>
+    <div class="mb-3 small text-muted fw-bold" th:unless="${isHost}">
+      <span>👑 Chỉ Chánh Án mới có quyền quay vòng quay hình phạt meow!</span>
     </div>
 
     <!-- Revealed Penalty Box -->
     <div id="penalty-result-box" class="p-3 rounded-4 border border-2 border-dark text-center"
          style="background: #FFF3CD; box-shadow: 0 3px 0 var(--cat-dark-deep);">
-      <div class="small text-muted fw-bold mb-1">🐾 HÌNH PHẠT CHÍNH THỨC:</div>
+      <div class="small text-muted fw-bold mb-1">🐾 HÌNH PHẠT CHO PHE THUA CUỘC:</div>
       <div class="fs-6 fw-bold text-dark" id="penalty-result-text"
            th:text="${room.selectedPenalty != null ? room.selectedPenalty : 'Kêu meow 3 lần trước mọi người với biểu cảm dễ thương nhất! 🐾'}">
         Kêu meow 3 lần trước mọi người với biểu cảm dễ thương nhất! 🐾
