@@ -1,0 +1,50 @@
+[
+  {
+    "id": "vi_street_food",
+    "name": "Ẩm Thực Đường Phố",
+    "pairs": [
+      { "topic": "Đồ uống", "civilianWord": "Cà phê", "spyWord": "Trà đá" },
+      { "topic": "Món ăn sáng", "civilianWord": "Bánh mì", "spyWord": "Xôi xéo" },
+      { "topic": "Món nước", "civilianWord": "Bún chả", "spyWord": "Phở bò" },
+      { "topic": "Ăn vặt", "civilianWord": "Bánh tráng", "spyWord": "Cơm cháy" },
+      { "topic": "Tráng miệng", "civilianWord": "Chè bưởi", "spyWord": "Tàu hũ" },
+      { "topic": "Đồ chiên", "civilianWord": "Nem chua", "spyWord": "Chả giò" },
+      { "topic": "Giải khát", "civilianWord": "Nước mía", "spyWord": "Rau má" },
+      { "topic": "Trái cây dĩa", "civilianWord": "Xoài lắc", "spyWord": "Cóc ngâm" },
+      { "topic": "Bánh ngọt", "civilianWord": "Bánh tiêu", "spyWord": "Bánh bao" },
+      { "topic": "Lẩu ấm", "civilianWord": "Lẩu thái", "spyWord": "Lẩu mắm" }
+    ]
+  },
+  {
+    "id": "vi_pets_animals",
+    "name": "Thế Giới Động Vật",
+    "pairs": [
+      { "topic": "Thú cưng", "civilianWord": "Mèo", "spyWord": "Chó" },
+      { "topic": "Thú rừng", "civilianWord": "Hổ", "spyWord": "Báo" },
+      { "topic": "Loài chim", "civilianWord": "Bồ câu", "spyWord": "Hải âu" },
+      { "topic": "Dưới nước", "civilianWord": "Cá voi", "spyWord": "Cá mập" },
+      { "topic": "Gia cầm", "civilianWord": "Gà con", "spyWord": "Vịt con" },
+      { "topic": "Bò sát", "civilianWord": "Thằn lằn", "spyWord": "Tắc kè" },
+      { "topic": "Côn trùng", "civilianWord": "Con ong", "spyWord": "Con bướm" },
+      { "topic": "Loài chậm chạp", "civilianWord": "Ốc sên", "spyWord": "Rùa cạn" },
+      { "topic": "Động vật nhỏ", "civilianWord": "Chuột túi", "spyWord": "Gấu trúc" },
+      { "topic": "Vùng lạnh", "civilianWord": "Cánh cụt", "spyWord": "Gấu bắc" }
+    ]
+  },
+  {
+    "id": "vi_daily_life",
+    "name": "Đời Sống & Gia Đình",
+    "pairs": [
+      { "topic": "Thiết bị", "civilianWord": "Điện thoại", "spyWord": "Máy tính" },
+      { "topic": "Đồ gia dụng", "civilianWord": "Tủ lạnh", "spyWord": "Máy giặt" },
+      { "topic": "Phương tiện", "civilianWord": "Xe máy", "spyWord": "Xe đạp" },
+      { "topic": "Phòng ngủ", "civilianWord": "Cái gối", "spyWord": "Tấm chăn" },
+      { "topic": "Nhà tắm", "civilianWord": "Bàn chải", "spyWord": "Khăn lau" },
+      { "topic": "Trang phục", "civilianWord": "Áo sơ mi", "spyWord": "Áo thun polo" },
+      { "topic": "Đi lại xa", "civilianWord": "Máy bay", "spyWord": "Tàu hỏa" },
+      { "topic": "Thời tiết", "civilianWord": "Mưa rào", "spyWord": "Gió bão" },
+      { "topic": "Nhà bếp", "civilianWord": "Chảo rán", "spyWord": "Nồi luộc" },
+      { "topic": "Giải trí", "civilianWord": "Xem phim", "spyWord": "Nghe nhạc" }
+    ]
+  }
+]

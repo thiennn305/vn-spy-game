@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Main Game Container: dynamically routes to current status fragment -->
+<div th:fragment="game-container" id="game-main-container">
+
+  <!-- Persistent Elimination Alert for Dead Players -->
+  <div th:if="${currentPlayer != null and !currentPlayer.isAlive and room.status.name() != 'RESULT'}"
+       class="alert alert-dark border border-3 border-dark rounded-4 p-3 mb-3 text-center animate-fade-in"
+       style="background: #2D2744; color: #FFFFFF; box-shadow: 0 4px 0 var(--cat-dark-deep);">
+    <div class="fs-2 mb-1">👻 🐾 ☠️</div>
+    <div class="fw-bold fs-5 text-warning" style="font-family: var(--cat-font-heading);">
+      BẠN ĐÃ BỊ LOẠI KHỎI PHIÊN TÒA!
+    </div>
+    <div class="small opacity-75 mt-1">
+      Hoàng thượng hiện là linh hồn mèo quan sát. Bạn không thể phát biểu hoặc bỏ phiếu, hãy trật tự theo dõi phán quyết của bầy mèo meow~
+    </div>
+  </div>
+
+  <!-- 1. PLAYING / DISCUSSION PHASE -->
+  <div th:if="${room.status.name() == 'PLAYING' or room.status.name() == 'DISCUSSION'}">
+    <div th:replace="~{fragments/game-fragments :: playing-view}"></div>
+  </div>
+
+  <!-- 2. VOTING PHASE -->
+  <div th:if="${room.status.name() == 'VOTING'}">
+    <div th:replace="~{fragments/game-fragments :: voting-view}"></div>
+  </div>
+
+  <!-- 3. ROUND_SUMMARY PHASE (Elimination Announcement & Host Next Round) -->
+  <div th:if="${room.status.name() == 'ROUND_SUMMARY'}">
+    <div th:replace="~{fragments/game-fragments :: round-summary-view}"></div>
+  </div>
+
+  <!-- 4. LAST_GUESS PHASE -->
+  <div th:if="${room.status.name() == 'LAST_GUESS'}">
+    <div th:replace="~{fragments/game-fragments :: last-guess-view}"></div>
+  </div>
+
+  <!-- 5. RESULT PHASE -->
+  <div th:if="${room.status.name() == 'RESULT'}">
+    <div th:replace="~{fragments/game-fragments :: result-view}"></div>
+  </div>
+
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- FRAGMENT: PLAYING VIEW (Turn-based Discussion & 3D Card Peek)             -->
+<!-- ========================================================================= -->
+<div th:fragment="playing-view" class="animate-fade-in">
+
+  <!-- Round & Turn Info Header -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: var(--cat-cream);">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="badge cat-badge-gold fs-6 px-3 py-1">
+        <span>🐾 Vòng Tranh Luận </span><span th:text="${room.roundNumber}">1</span>
+      </span>
+      <span class="badge cat-badge-mint fs-6 px-3 py-1" id="turn-timer-badge">
+        <i class="bi bi-clock-history"></i> <span id="turn-timer-text" th:data-seconds="${room.timerSeconds}" th:text="${room.timerSeconds + 's'}">45s</span>
+      </span>
+    </div>
+
+    <!-- Active Speaker Spotlight -->
+    <div class="p-2 rounded-4 border border-2 border-dark mt-2"
+         style="background: #FFF3CD; box-shadow: 0 3px 0 var(--cat-dark-deep);">
+      <div class="small text-muted fw-bold text-uppercase">🎤 Mèo Đang Phát Biểu:</div>
+      <div class="d-flex align-items-center justify-content-center gap-2 mt-1" th:if="${currentSpeaker != null}">
+        <div class="cat-avatar-circle" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+          <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${currentSpeaker.avatarIndex})}"></div>
+        </div>
+        <div class="fs-5 fw-bold text-dark" style="font-family: var(--cat-font-heading);" th:text="${currentSpeaker.nickname}">
+          Mèo Thám Tử
+        </div>
+      </div>
+      <div class="small fw-bold text-muted mt-1" th:if="${currentSpeaker == null}">
+        Đang khởi động phiên tòa...
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D Hold-to-Peek Secret Word Card -->
+  <div class="cat-card text-center p-3 mb-3" style="background: var(--cat-cream);">
+    <h3 class="h6 text-muted mb-2">🐾 Mật lệnh của Hoàng thượng</h3>
+    <div class="small text-muted mb-3">Nhấn và giữ đệm chân mèo bên dưới để xem từ khóa bí mật:</div>
+
+    <div class="cat-flip-card" id="secret-flip-card" role="button" tabindex="0"
+         aria-label="Thẻ bài từ khóa bí mật. Nhấn giữ để lật.">
+      <div class="cat-flip-inner">
+        <!-- Front Face: Mystery Paw Stamp (Face-Down) -->
+        <div class="cat-flip-face cat-flip-front">
+          <div class="paw-icon mb-2">🐾</div>
+          <div class="fw-bold text-cat-pink mb-1" style="font-family: var(--cat-font-heading);">
+            CHẠM &amp; GIỮ ĐỂ LẬT THẺ
+          </div>
+          <div class="small text-light opacity-75">
+            Thả tay ra sẽ tự động úp lại meow~
+          </div>
+        </div>
+
+        <!-- Back Face: Revealed Secret Word (Face-Up) - Roles are hidden to preserve mystery -->
+        <div class="cat-flip-face cat-flip-back"
+             th:style="${currentPlayer != null and currentPlayer.role != null and currentPlayer.role.name() == 'MR_WHITE'} ? 'background: #E7F5FF;' : 'background: #FFF8E7;'">
+
+          <!-- Secret Word Badge (Role hidden: shows 'Mật Lệnh' or 'Thẻ Trắng') -->
+          <div class="mb-2" th:if="${currentPlayer != null and currentPlayer.role != null}">
+            <span th:if="${currentPlayer.role.name() != 'MR_WHITE'}" class="badge cat-badge-gold px-3 py-1 fs-6">
+              🐾 Mật Lệnh Của Bạn
+            </span>
+            <span th:if="${currentPlayer.role.name() == 'MR_WHITE'}" class="badge cat-badge-mint px-3 py-1 fs-6">
+              📦 Thẻ Trắng (Mr. White)
+            </span>
+          </div>
+
+          <!-- Secret Word Display -->
+          <div class="my-2" th:if="${currentPlayer != null}">
+            <div th:if="${currentPlayer.role != null and currentPlayer.role.name() != 'MR_WHITE'}"
+                 class="fs-3 fw-bold text-dark px-2 py-1 word-text"
+                 style="font-family: var(--cat-font-heading); letter-spacing: 1px;"
+                 th:text="${currentPlayer.secretWord}">
+              Cà phê sữa
+            </div>
+            <div th:if="${currentPlayer.role != null and currentPlayer.role.name() != 'MR_WHITE'}"
+                 class="small text-muted fst-italic px-2">
+              Hãy miêu tả từ khóa thật khéo léo để không bị bầy mèo nghi ngờ meow~
+            </div>
+            <div th:if="${currentPlayer.role != null and currentPlayer.role.name() == 'MR_WHITE'}"
+                 class="fs-4 fw-bold text-primary px-2 py-1 word-text"
+                 style="font-family: var(--cat-font-heading);">
+              ❓ THẺ TRẮNG ❓
+            </div>
+            <div th:if="${currentPlayer.role != null and currentPlayer.role.name() == 'MR_WHITE'}"
+                 class="small text-muted fst-italic px-2">
+              Bạn không có từ khóa! Hãy lắng nghe các con mèo khác để suy đoán!
+            </div>
+          </div>
+
+          <!-- Illustration: Neutral paw icon for regular players, Mr. White box cat for Mr. White -->
+          <div class="mt-2" style="max-height: 80px; display: flex; align-items: center; justify-content: center;"
+               th:if="${currentPlayer != null and currentPlayer.role != null}">
+            <div th:if="${currentPlayer.role.name() != 'MR_WHITE'}" class="fs-1 text-warning opacity-75">
+              🐾 🕵️ 🐾
+            </div>
+            <div th:if="${currentPlayer.role.name() == 'MR_WHITE'}" th:replace="~{fragments/cat-illustrations :: role-mrwhite-cat}"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speaking Order List -->
+  <div class="cat-card p-3 mb-3" style="background: var(--cat-cream);">
+    <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2" style="font-family: var(--cat-font-heading);">
+      <span>📋</span>
+      <span>Thứ Tự Phát Biểu Của Bầy Mèo</span>
+    </h3>
+
+    <div class="d-flex flex-column gap-2" id="speaking-order-container">
+      <div th:each="orderId, iter : ${room.speakingOrder}"
+           th:with="p=${room.getPlayer(orderId)}"
+           th:if="${p != null}"
+           class="d-flex align-items-center justify-content-between p-2 rounded-4 border border-2 border-dark"
+           th:style="${p.id == (currentSpeaker != null ? currentSpeaker.id : '')} ? 'background: #FFF3CD; box-shadow: 0 4px 0 #D48806;' : (${!p.isAlive} ? 'background: #E9ECEF; opacity: 0.6;' : 'background: #FFFFFF; box-shadow: 0 2px 0 var(--cat-dark-deep);')">
+
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge rounded-circle p-2 border border-dark"
+                th:style="${p.id == (currentSpeaker != null ? currentSpeaker.id : '')} ? 'background: var(--cat-gold); color: black;' : 'background: #E9ECEF; color: black;'"
+                th:text="${iter.count}">1</span>
+
+          <div class="cat-avatar-circle" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+            <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${p.avatarIndex})}"></div>
+          </div>
+
+          <div>
+            <span class="fw-bold text-dark" style="font-family: var(--cat-font-heading);" th:text="${p.nickname}">Mèo Thám Tử</span>
+            <span th:if="${p.isHost}" class="badge cat-badge-gold py-0 px-2 ms-1">👑</span>
+          </div>
+        </div>
+
+        <div>
+          <span th:if="${p.id == (currentSpeaker != null ? currentSpeaker.id : '')}" class="badge cat-badge-gold animate-bounce">
+            🎤 Đang nói
+          </span>
+          <span th:if="${p.isAlive and p.id != (currentSpeaker != null ? currentSpeaker.id : '')}" class="small text-muted fw-bold">
+            🐾 Chờ lượt
+          </span>
+          <span th:if="${!p.isAlive}" class="badge bg-secondary text-white">
+            ☠️ Đã bị loại
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Host Game Action Controls -->
+  <div th:if="${isHost}" class="cat-card p-3 mb-3" style="background: var(--cat-cream);">
+    <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2" style="font-family: var(--cat-font-heading);">
+      <span>⚖️</span>
+      <span>Quyền Hạn Của Chánh Án</span>
+    </h3>
+
+    <div class="d-flex flex-column gap-2">
+      <button type="button" class="cat-btn cat-btn-mint cat-btn-block fs-6 py-2" id="btn-next-speaker">
+        <span>➡️ Chuyển Lượt Mèo Tiếp Theo</span>
+      </button>
+
+      <button type="button" class="cat-btn cat-btn-pink cat-btn-block fs-6 py-2" id="btn-start-voting">
+        <span>⚖️ Mở Phiên Tòa Bỏ Phiếu Kết Tội</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- FRAGMENT: VOTING VIEW (Accusation & Real-Time Voting Grid)                 -->
+<!-- ========================================================================= -->
+<div th:fragment="voting-view" class="animate-fade-in">
+
+  <div class="cat-card p-3 mb-3 text-center" style="background: #FFE3E3; border: 3px solid var(--cat-dark);">
+    <div class="fs-2 mb-1">⚖️ 😾 ⚖️</div>
+    <h2 class="fs-4 fw-bold text-dark mb-1" style="font-family: var(--cat-font-heading);">
+      Phiên Tòa Bỏ Phiếu Kết Tội!
+    </h2>
+    <div class="small text-muted fw-bold">
+      Hãy chỉ điểm con mèo bạn nghi ngờ là Gián Điệp hoặc Mr. White!
+    </div>
+  </div>
+
+  <!-- Voting Candidate Grid -->
+  <div class="cat-card p-3 mb-3" style="background: var(--cat-cream);">
+    <h3 class="h6 fw-bold mb-3" style="font-family: var(--cat-font-heading);">
+      🎯 Chọn Mèo Cần Kết Tội:
+    </h3>
+
+    <div class="d-flex flex-column gap-2" id="voting-candidates-list">
+      <div th:each="p : ${alivePlayers}"
+           class="d-flex align-items-center justify-content-between p-2 rounded-4 border border-2 border-dark"
+           th:style="${currentPlayer != null and currentPlayer.votedTargetId == p.id} ? 'background: #FFD8A8; border-color: #E8590C;' : 'background: #FFFFFF;'">
+
+        <div class="d-flex align-items-center gap-2">
+          <div class="cat-avatar-circle" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+            <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${p.avatarIndex})}"></div>
+          </div>
+          <div>
+            <div class="fw-bold text-dark" style="font-family: var(--cat-font-heading);" th:text="${p.nickname}">Mèo Vô Số Tội</div>
+            <div class="small text-muted">
+              <span th:if="${p.hasVoted}" class="text-success fw-bold">✓ Đã bỏ phiếu</span>
+              <span th:unless="${p.hasVoted}" class="text-muted">⏳ Đang suy nghĩ</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <!-- Vote Action Button (Only if currentPlayer is alive) -->
+          <button th:if="${currentPlayer != null and currentPlayer.isAlive and currentPlayer.id != p.id}"
+                  type="button"
+                  class="btn btn-sm rounded-pill fw-bold btn-vote-candidate"
+                  th:classappend="${currentPlayer.votedTargetId == p.id} ? 'btn-danger' : 'btn-outline-danger'"
+                  th:attr="data-target-id=${p.id}"
+                  th:text="${currentPlayer.votedTargetId == p.id} ? '🎯 Đã Chọn' : 'Chỉ Điểm 😾'">
+            Chỉ Điểm 😾
+          </button>
+          <span th:if="${currentPlayer != null and currentPlayer.id == p.id}" class="badge bg-secondary text-white py-1 px-2">
+            Bản thân
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert for Dead Spectator -->
+    <div th:if="${currentPlayer != null and !currentPlayer.isAlive}"
+         class="alert alert-warning border border-2 border-dark rounded-4 mt-3 py-2 small text-center mb-0"
+         style="background: #FFF3CD; color: #856404; font-weight: 600;">
+      👻 Bạn đã bị loại khỏi phiên tòa và chỉ có thể quan sát bầy mèo bỏ phiếu!
+    </div>
+  </div>
+
+  <!-- Host Conclude Voting Button -->
+  <div th:if="${isHost}" class="cat-card p-3 mb-3 text-center" style="background: var(--cat-cream);">
+    <button type="button" class="cat-btn cat-btn-gold cat-btn-block fs-5 py-2" id="btn-conclude-vote">
+      <span>🔨 Chốt &amp; Tổng Kết Phiếu Bầu</span>
+    </button>
+    <div class="small text-muted mt-2">
+      (Hệ thống sẽ tự động tổng kết khi 100% bầy mèo còn sống đã bỏ phiếu)
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- FRAGMENT: ROUND_SUMMARY VIEW (Elimination Announcement & Host Next Round) -->
+<!-- ========================================================================= -->
+<div th:fragment="round-summary-view" class="animate-fade-in">
+
+  <!-- Elimination Banner Header -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: #FFE3E3; border: 3px solid var(--cat-dark);">
+    <div class="fs-1 mb-1">⚖️ 🔨 😾</div>
+    <h2 class="fs-3 fw-bold text-danger mb-1" style="font-family: var(--cat-font-heading);">
+      Phán Quyết Tòa Án!
+    </h2>
+    <div class="small text-muted fw-bold">
+      Phiên tòa bỏ phiếu đã kết thúc và một con mèo đã bị trục xuất!
+    </div>
+  </div>
+
+  <!-- Eliminated Cat Spotlight -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: #FFF8E7;">
+    <div class="cat-avatar-circle mx-auto mb-2" style="width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center;"
+         th:if="${eliminatedPlayer != null}">
+      <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${eliminatedPlayer.avatarIndex})}"></div>
+    </div>
+
+    <div class="fs-4 fw-bold text-dark" style="font-family: var(--cat-font-heading);"
+         th:text="${eliminatedPlayer != null ? eliminatedPlayer.nickname : 'Mèo Vô Số Tội'}">
+      Mèo Vô Số Tội
+    </div>
+
+    <div class="badge bg-danger text-white fs-6 px-3 py-1 my-2">
+      ☠️ Đã bị loại khỏi phiên tòa!
+    </div>
+
+    <div class="small text-muted fst-italic">
+      Danh tính thực sự của con mèo này vẫn được giữ kín cho đến cuối ván đấu meow~
+    </div>
+  </div>
+
+  <!-- Surviving Players Status Card -->
+  <div class="cat-card p-3 mb-3" style="background: var(--cat-cream);">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h3 class="h6 fw-bold mb-0" style="font-family: var(--cat-font-heading);">
+        🐾 Bầy Mèo Còn Lại Trên Bàn:
+      </h3>
+      <span class="badge cat-badge-mint fs-6 px-2 py-1" th:text="${alivePlayers != null ? alivePlayers.size() : 0} + ' mèo còn sống'">
+        3 mèo còn sống
+      </span>
+    </div>
+
+    <div class="d-flex flex-column gap-2">
+      <div th:each="p : ${players}"
+           class="d-flex align-items-center justify-content-between p-2 rounded-4 border border-2 border-dark"
+           th:style="${p.isAlive} ? 'background: #FFFFFF;' : 'background: #E9ECEF; opacity: 0.6;'">
+
+        <div class="d-flex align-items-center gap-2">
+          <div class="cat-avatar-circle" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+            <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${p.avatarIndex})}"></div>
+          </div>
+          <div>
+            <span class="fw-bold text-dark" style="font-family: var(--cat-font-heading);" th:text="${p.nickname}">Mèo</span>
+            <span th:if="${p.isHost}" class="badge cat-badge-gold py-0 px-2 ms-1">👑</span>
+            <span th:if="${currentPlayer != null and p.id == currentPlayer.id}" class="badge cat-badge-pink py-0 px-2 ms-1">Bạn</span>
+          </div>
+        </div>
+
+        <div>
+          <span th:if="${p.isAlive}" class="badge cat-badge-mint py-1 px-2 small">🐾 Còn sống</span>
+          <span th:unless="${p.isAlive}" class="badge bg-secondary text-white py-1 px-2 small">☠️ Đã bị loại</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Host Next Round Button or Waiting Indicator -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: var(--cat-cream);">
+    <div th:if="${isHost}">
+      <button type="button" class="cat-btn cat-btn-gold cat-btn-block fs-5 py-3" id="btn-next-round"
+              onclick="window.handleNextRound && window.handleNextRound(event)">
+        <span>🔔 Tiếp Tục Vòng Tranh Luận Tiếp Theo</span>
+      </button>
+      <div class="small text-muted mt-2">
+        Nhấn để bầy mèo bước vào vòng tranh luận kế tiếp!
+      </div>
+    </div>
+
+    <div th:unless="${isHost}">
+      <div class="paw-icon fs-2 mb-2 animate-bounce">⏳</div>
+      <div class="fw-bold fs-6 text-dark">
+        Đang chờ Chánh Án mở vòng tranh luận tiếp theo...
+      </div>
+      <div class="small text-muted mt-1">
+        Hãy chuẩn bị lập luận sắc bén cho lượt phát biểu tiếp theo meow!
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- FRAGMENT: LAST_GUESS VIEW (20s Last Chance to Steal Victory)              -->
+<!-- ========================================================================= -->
+<div th:fragment="last-guess-view" class="animate-fade-in">
+
+  <!-- Dramatic Header & Countdown -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: #FFE3E3; border: 3px solid var(--cat-dark);">
+    <div class="paw-icon fs-1 mb-1">⚡ 🕵️ ⚡</div>
+    <h2 class="fs-4 fw-bold text-danger mb-1" style="font-family: var(--cat-font-heading);">
+      20 Giây Lật Kèo!
+    </h2>
+    <div class="fw-bold text-dark small mb-2">
+      Đã bắt được Gián Điệp / Mr. White! Cơ hội cuối cùng để cướp chiến thắng!
+    </div>
+    <div class="badge cat-badge-pink fs-4 px-4 py-2" id="last-guess-countdown">
+      ⏱️ <span id="countdown-timer-num">20</span>s
+    </div>
+  </div>
+
+  <!-- Form for the Eliminated Player -->
+  <div th:if="${currentPlayer != null and currentPlayer.id == room.eliminatedPlayerId}"
+       class="cat-card p-3 mb-3" style="background: #FFF8E7;">
+
+    <div class="alert alert-danger border border-2 border-dark rounded-4 text-center py-2 mb-3">
+      <div class="fw-bold">Hoàng thượng đã bị bầy mèo vạch trần! 😿</div>
+      <div class="small">Hãy đoán chính xác mật lệnh của Dân Thường để lật ngược thế cờ!</div>
+    </div>
+
+    <!-- Word Structure Hint -->
+    <div class="p-3 rounded-4 border border-2 border-dark text-center mb-3"
+         style="background: #FFFFFF; box-shadow: 0 4px 0 var(--cat-dark-deep);">
+      <div class="small text-muted fw-bold mb-1">GỢI Ý CẤU TRÚC MẬT LỆNH:</div>
+      <div class="fs-3 fw-bold text-primary" style="font-family: monospace; letter-spacing: 3px;"
+           th:text="${room.lastGuessWordHint}">
+        B _ _ _   m _   k _ _
+      </div>
+    </div>
+
+    <!-- Submission Form -->
+    <form id="last-guess-form" onsubmit="window.handleLastGuessSubmit && window.handleLastGuessSubmit(event); return false;">
+      <div class="mb-3">
+        <label class="cat-label" for="last-guess-input">Mật Lệnh Đoán Được (hỗ trợ có hoặc không dấu):</label>
+        <input type="text" class="cat-input" id="last-guess-input"
+               placeholder="Nhập từ khóa Dân Thường..." autocomplete="off" autofocus required>
+        <div id="last-guess-feedback" class="small mt-2 text-danger fw-bold d-none"></div>
+      </div>
+
+      <button type="button" class="cat-btn cat-btn-pink cat-btn-block fs-5 py-2" id="btn-submit-last-guess"
+              onclick="window.handleLastGuessSubmit && window.handleLastGuessSubmit(event)">
+        <span>🎯 Gửi Mật Lệnh Lật Kèo</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Waiting Screen for Spectators -->
+  <div th:unless="${currentPlayer != null and currentPlayer.id == room.eliminatedPlayerId}"
+       class="cat-card p-3 mb-3 text-center" style="background: var(--cat-cream);">
+
+    <div class="cat-avatar-circle mx-auto mb-2" style="width: 60px; height: 60px; display: inline-flex; align-items: center; justify-content: center;"
+         th:if="${eliminatedPlayer != null}">
+      <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${eliminatedPlayer.avatarIndex})}"></div>
+    </div>
+
+    <div class="fs-5 fw-bold text-dark" style="font-family: var(--cat-font-heading);"
+         th:text="${eliminatedPlayer != null ? eliminatedPlayer.nickname : 'Mèo Tình Nghi'}">
+      Mèo Tình Nghi
+    </div>
+
+    <div class="small text-muted mt-1 mb-3">
+      Đang có 20 giây để đoán từ khóa của phe Dân Thường...
+    </div>
+
+    <div class="p-3 rounded-4 border border-2 border-dark text-center"
+         style="background: #FFFFFF; box-shadow: 0 3px 0 var(--cat-dark-deep);">
+      <div class="small text-muted fw-bold mb-1">GỢI Ý CẤU TRÚC:</div>
+      <div class="fs-4 fw-bold text-primary" style="font-family: monospace; letter-spacing: 2px;"
+           th:text="${room.lastGuessWordHint}">
+        B _ _ _   m _   k _ _
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- FRAGMENT: RESULT VIEW (Winner Announcement, Reveal & Penalty Wheel)       -->
+<!-- ========================================================================= -->
+<div th:fragment="result-view" class="animate-fade-in">
+
+  <!-- Winner Banner -->
+  <div class="cat-card p-3 mb-3 text-center"
+       th:style="${room.winnerFaction == 'CIVILIAN'} ? 'background: #D3F9D8; border-color: #2B8A3E;' : (${room.winnerFaction == 'MR_WHITE'} ? 'background: #E7F5FF; border-color: #1971C2;' : (${room.winnerFaction == 'SPY_AND_MR_WHITE'} ? 'background: #FFF3CD; border-color: #D48806;' : 'background: #FFE3E3; border-color: #E03131;'))">
+
+    <div class="fs-1 mb-1" th:text="${room.winnerFaction == 'CIVILIAN'} ? '🏆 😺 🏆' : (${room.winnerFaction == 'MR_WHITE'} ? '📦 🌟 📦' : (${room.winnerFaction == 'SPY_AND_MR_WHITE'} ? '😾 📦 😾' : '🕵️ 🕶️ 🕵️'))">
+      🏆
+    </div>
+
+    <h2 class="fs-3 fw-bold text-dark mb-1" style="font-family: var(--cat-font-heading);"
+        th:text="${room.winnerFaction == 'CIVILIAN'} ? 'PHE DÂN THƯỜNG TOÀN THẮNG!' : (${room.winnerFaction == 'MR_WHITE'} ? 'MR. WHITE LẬT KÈO CHIẾN THẮNG!' : (${room.winnerFaction == 'SPY_AND_MR_WHITE'} ? 'CẢ HAI PHE PHẢN DIỆN CÙNG THẮNG!' : 'PHE GIÁN ĐIỆP CHIẾN THẮNG!'))">
+      PHE DÂN THƯỜNG TOÀN THẮNG!
+    </h2>
+
+    <div class="badge cat-badge-gold fs-6 px-3 py-1 mt-1" th:if="${room.winReason != null}">
+      <span th:if="${room.winReason == 'result.civilians_eliminated_all'}">Đã loại bỏ toàn bộ Gián Điệp &amp; Mr. White! 🐾</span>
+      <span th:if="${room.winReason == 'result.civilians_majority'}">Phe Dân Thường bảo vệ an toàn tòa án và giành chiến thắng! 😺</span>
+      <span th:if="${room.winReason == 'result.villains_majority'}">Phe Gián Điệp đã áp đảo số lượng phiên tòa! 😾</span>
+      <span th:if="${room.winReason == 'result.mrwhite_majority'}">Mr. White đã trà trộn và sống sót đến cuối cùng! 📦</span>
+      <span th:if="${room.winReason == 'result.both_villains_win'}">Cả hai phe Gián Điệp và Mr. White cùng giành chiến thắng! 😾📦</span>
+      <span th:if="${room.winReason == 'result.spy_last_guess_win'}">Gián Điệp đã đoán trúng từ khóa ở 20 giây lật kèo! 🎯</span>
+      <span th:if="${room.winReason == 'result.mrwhite_last_guess_win'}">Mr. White đã đoán trúng từ khóa thần kỳ! 📦</span>
+    </div>
+  </div>
+
+  <!-- Words Comparison Card -->
+  <div class="cat-card p-3 mb-3" style="background: var(--cat-cream);" th:if="${room.currentWordPair != null}">
+    <h3 class="h6 fw-bold mb-2 text-center" style="font-family: var(--cat-font-heading);">
+      🔑 Cặp Từ Khóa Của Phiên Tòa:
+    </h3>
+    <div class="row g-2 text-center">
+      <div class="col-6">
+        <div class="p-2 rounded-4 border border-2 border-dark bg-white">
+          <div class="small text-muted fw-bold">Dân Thường:</div>
+          <div class="fs-6 fw-bold text-success" th:text="${room.currentWordPair.civilianWord}">Cà phê sữa</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="p-2 rounded-4 border border-2 border-dark bg-white">
+          <div class="small text-muted fw-bold">Gián Điệp:</div>
+          <div class="fs-6 fw-bold text-danger" th:text="${room.currentWordPair.spyWord}">Trà sữa trân châu</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Identity Reveal List -->
+  <div class="cat-card p-3 mb-3" style="background: var(--cat-cream);">
+    <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2" style="font-family: var(--cat-font-heading);">
+      <span>🎭</span>
+      <span>Bảng Lật Toàn Bộ Danh Tính Mèo</span>
+    </h3>
+
+    <div class="d-flex flex-column gap-2">
+      <div th:each="p : ${players}"
+           class="d-flex align-items-center justify-content-between p-2 rounded-4 border border-2 border-dark"
+           style="background: #FFFFFF; box-shadow: 0 2px 0 var(--cat-dark-deep);">
+
+        <div class="d-flex align-items-center gap-2">
+          <div class="cat-avatar-circle" style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;">
+            <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${p.avatarIndex})}"></div>
+          </div>
+          <div>
+            <div class="fw-bold text-dark" style="font-family: var(--cat-font-heading);">
+              <span th:text="${p.nickname}">Mèo Vô Số Tội</span>
+              <span th:if="${p.isHost}" class="badge cat-badge-gold py-0 px-2 ms-1">👑</span>
+            </div>
+            <div class="small text-muted">
+              <span th:if="${p.role != null and p.role.name() == 'CIVILIAN'}" class="text-success fw-bold">😺 Dân Thường</span>
+              <span th:if="${p.role != null and p.role.name() == 'SPY'}" class="text-danger fw-bold">🕶️ Gián Điệp</span>
+              <span th:if="${p.role != null and p.role.name() == 'MR_WHITE'}" class="text-primary fw-bold">📦 Mr. White</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <div class="small fw-bold" th:text="${p.secretWord != null ? p.secretWord : 'Thẻ Trắng'}">Cà phê sữa</div>
+          <span th:if="${p.isAlive}" class="badge cat-badge-mint py-0 px-2 small">Sống sót</span>
+          <span th:unless="${p.isAlive}" class="badge bg-secondary text-white py-0 px-2 small">Bị loại</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Penalty Spin Wheel -->
+  <div class="cat-card p-3 mb-3 text-center" style="background: var(--cat-cream);">
+    <h3 class="h6 fw-bold mb-2" style="font-family: var(--cat-font-heading);">
+      🎡 Vòng Quay Hình Phạt Cho Phe Thua Cuộc
+    </h3>
+    <div class="small text-muted mb-3">Nhấn nút bên dưới để quay hình phạt ngẫu nhiên đầy hài hước!</div>
+
+    <!-- Canvas Wheel -->
+    <div class="position-relative d-inline-block mb-3">
+      <canvas id="penalty-wheel-canvas" width="240" height="240" style="max-width: 100%; height: auto; border-radius: 50%; box-shadow: 0 4px 0 var(--cat-dark-deep);"></canvas>
+      <div id="wheel-pointer" style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 24px; z-index: 10;">
+        🔻
+      </div>
+    </div>
+
+    <!-- Spin Button -->
+    <div class="mb-3">
+      <button type="button" class="cat-btn cat-btn-pink px-4 py-2 fs-5" id="btn-spin-wheel">
+        <span>🎡 Quay Hình Phạt!</span>
+      </button>
+    </div>
+
+    <!-- Revealed Penalty Box -->
+    <div id="penalty-result-box" class="p-3 rounded-4 border border-2 border-dark text-center"
+         style="background: #FFF3CD; box-shadow: 0 3px 0 var(--cat-dark-deep);">
+      <div class="small text-muted fw-bold mb-1">🐾 HÌNH PHẠT CHÍNH THỨC:</div>
+      <div class="fs-6 fw-bold text-dark" id="penalty-result-text"
+           th:text="${room.selectedPenalty != null ? room.selectedPenalty : 'Kêu meow 3 lần trước mọi người với biểu cảm dễ thương nhất! 🐾'}">
+        Kêu meow 3 lần trước mọi người với biểu cảm dễ thương nhất! 🐾
+      </div>
+    </div>
+  </div>
+
+  <!-- Host Play Again Button -->
+  <div th:if="${isHost}" class="cat-card p-3 mb-3 text-center" style="background: var(--cat-cream);">
+    <button type="button" class="cat-btn cat-btn-gold cat-btn-block fs-5 py-3" id="btn-restart-game">
+      <span>🔄 Chơi Lại Ván Mới</span>
+    </button>
+    <div class="small text-muted mt-2">Bầy mèo được giữ nguyên, phòng sẽ được đặt lại về phòng chờ!</div>
+  </div>
+
+</div>
+
+</body>
+</html>

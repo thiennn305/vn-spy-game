@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Fragment: Dynamic Player List in Lobby -->
+<div th:fragment="player-list" id="lobby-player-list-container"
+     th:data-can-start="${canStart != null and canStart}"
+     th:data-player-count="${players != null ? players.size() : 0}"
+     th:data-room-status="${room != null ? room.status.name() : 'LOBBY'}">
+
+  <!-- Header count -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="fw-bold fs-6 text-dark" style="font-family: var(--cat-font-heading);">
+      <span>🐾</span>
+      <span th:text="#{lobby.players.count(${players != null ? players.size() : 0}, '16')}">
+        Bầy mèo trong phòng (0/16 😺)
+      </span>
+    </div>
+    <span class="badge"
+          th:classappend="${canStart != null and canStart} ? 'cat-badge-mint' : 'cat-badge-pink'"
+          th:text="${canStart != null and canStart} ? #{lobby.ready} : #{lobby.waiting}">
+      Chờ thêm mèo...
+    </span>
+  </div>
+
+  <!-- Player items grid / list -->
+  <div class="d-flex flex-column gap-2" id="players-list-inner">
+    <div th:each="player : ${players}"
+         class="d-flex align-items-center justify-content-between p-2 rounded-4 border border-2 border-dark"
+         style="background: var(--cat-cream); box-shadow: 0 3px 0 var(--cat-dark-deep);">
+
+      <!-- Avatar & Nickname -->
+      <div class="d-flex align-items-center gap-2">
+        <!-- Cat Avatar by Index (1-8) -->
+        <div class="cat-avatar-circle" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+          <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${player.avatarIndex})}"></div>
+        </div>
+
+        <div>
+          <div class="fw-bold text-dark" style="font-family: var(--cat-font-heading);" th:text="${player.nickname}">
+            Mèo Thám Tử
+          </div>
+          <div class="small text-muted" th:if="${player.isHost}">
+            <span class="badge cat-badge-gold py-0 px-2" th:text="#{lobby.host.badge}">👑 Chánh Án</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ready badge -->
+      <div class="d-flex align-items-center gap-1 text-success fw-bold small">
+        <span>🐾</span>
+        <span>Sẵn sàng</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warning if not enough players -->
+  <div th:if="${players != null and players.size() < 3}"
+       class="alert alert-warning border border-2 border-dark rounded-4 mt-3 py-2 small text-center mb-0"
+       style="background: #FFF3CD; color: #856404; font-weight: 600;">
+    <span th:text="#{lobby.minplayers.warning}">Cần ít nhất 3 con mèo để mở phiên tòa xử án! 🐾</span>
+  </div>
+
+</div>
+
+</body>
+</html>

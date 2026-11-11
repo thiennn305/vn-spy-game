@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================================================ -->
+<!-- Shared CSS Animations for all SVG cat illustrations           -->
+<!-- ============================================================ -->
+<style th:fragment="cat-svg-styles">
+  /* Blink animation - mắt nháy */
+  @keyframes cat-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    96% { transform: scaleY(0.1); }
+  }
+
+  /* Ear twitch */
+  @keyframes ear-twitch {
+    0%, 88%, 100% { transform: rotate(0deg); }
+    91% { transform: rotate(8deg); }
+    94% { transform: rotate(-3deg); }
+    97% { transform: rotate(2deg); }
+  }
+
+  /* Magnifier wobble for detective */
+  @keyframes magnifier-wobble {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  /* Glasses glint for spy */
+  @keyframes glasses-glint {
+    0%, 85%, 100% { opacity: 0; }
+    90% { opacity: 0.8; }
+    95% { opacity: 0; }
+  }
+
+  /* Eye shift left-right for mrwhite */
+  @keyframes eye-shift {
+    0%, 35%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    70% { transform: translateX(-1px); }
+  }
+
+  /* Floating question mark */
+  @keyframes float-question {
+    0%, 100% { transform: translateY(0); opacity: 0.7; }
+    50% { transform: translateY(-8px); opacity: 1; }
+  }
+
+  /* Box wobble for mrwhite */
+  @keyframes box-wobble {
+    0%, 85%, 100% { transform: rotate(0deg); }
+    89% { transform: rotate(2deg); }
+    93% { transform: rotate(-2deg); }
+    96% { transform: rotate(1deg); }
+  }
+
+  /* Tail swish */
+  @keyframes tail-swish {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(10deg); }
+  }
+
+  /* Utility classes for SVG animations */
+  .cat-eyes-blink {
+    animation: cat-blink 4s ease-in-out infinite;
+    transform-origin: center center;
+  }
+  .cat-eyes-blink-slow {
+    animation: cat-blink 5s ease-in-out infinite;
+    transform-origin: center center;
+  }
+  .cat-ear-twitch {
+    animation: ear-twitch 5s ease-in-out infinite;
+  }
+  .cat-magnifier-wobble {
+    animation: magnifier-wobble 3s ease-in-out infinite;
+    transform-origin: center center;
+  }
+  .cat-glasses-glint {
+    animation: glasses-glint 6s ease-in-out infinite;
+  }
+  .cat-eye-shift {
+    animation: eye-shift 3s ease-in-out infinite;
+  }
+  .cat-float-question {
+    animation: float-question 2s ease-in-out infinite;
+  }
+  .cat-box-wobble {
+    animation: box-wobble 4s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+  .cat-tail-swish {
+    animation: tail-swish 2.5s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+</style>
+
+
+<!-- ============================================================ -->
+<!-- SVG 1: Logo Detective Cat 🔍                                  -->
+<!-- ============================================================ -->
+<div th:fragment="logo-detective-cat">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"
+       style="max-width: 180px; width: 100%;" role="img" aria-label="Detective Cat Logo">
+
+    <!-- Tail -->
+    <g class="cat-tail-swish" style="transform-origin: 155px 160px;">
+      <path d="M150 155 Q170 130 175 110 Q178 100 172 95"
+            fill="none" stroke="#E8941C" stroke-width="8" stroke-linecap="round"/>
+      <path d="M150 155 Q170 130 175 110 Q178 100 172 95"
+            fill="none" stroke="#120E1E" stroke-width="3" stroke-linecap="round" opacity="0.15"/>
+    </g>
+
+    <!-- Body -->
+    <ellipse cx="100" cy="158" rx="38" ry="32" fill="#F5A623" stroke="#120E1E" stroke-width="2.5"/>
+    <ellipse cx="100" cy="162" rx="28" ry="20" fill="#FFEAA7" stroke="none"/>
+
+    <!-- Front paws -->
+    <ellipse cx="78" cy="178" rx="12" ry="7" fill="#F5A623" stroke="#120E1E" stroke-width="2.5"/>
+    <ellipse cx="122" cy="178" rx="12" ry="7" fill="#F5A623" stroke="#120E1E" stroke-width="2.5"/>
+    <!-- Paw toes -->
+    <circle cx="73" cy="177" r="2" fill="#E8941C"/>
+    <circle cx="78" cy="176" r="2" fill="#E8941C"/>
+    <circle cx="83" cy="177" r="2" fill="#E8941C"/>
+    <circle cx="117" cy="177" r="2" fill="#E8941C"/>
+    <circle cx="122" cy="176" r="2" fill="#E8941C"/>
+    <circle cx="127" cy="177" r="2" fill="#E8941C"/>
+
+    <!-- Head -->
+    <circle cx="100" cy="95" r="42" fill="#F5A623" stroke="#120E1E" stroke-width="3"/>
+
+    <!-- Left Ear -->
+    <polygon points="66,68 58,22 84,56" fill="#F5A623" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+    <polygon points="68,62 63,32 80,56" fill="#FF6B8B" stroke="none"/>
+
+    <!-- Right Ear (animated) -->
+    <g class="cat-ear-twitch" style="transform-origin: 130px 56px;">
+      <polygon points="134,68 142,22 116,56" fill="#F5A623" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+      <polygon points="132,62 137,32 120,56" fill="#FF6B8B" stroke="none"/>
+    </g>
+
+    <!-- Deerstalker Detective Hat -->
+    <g>
+      <!-- Hat main body -->
+      <ellipse cx="100" cy="62" rx="30" ry="12" fill="#5D4037" stroke="#120E1E" stroke-width="2.5"/>
+      <!-- Hat dome -->
+      <path d="M75 62 Q75 38 100 35 Q125 38 125 62" fill="#5D4037" stroke="#120E1E" stroke-width="2.5"/>
+      <!-- Front brim -->
+      <path d="M80 62 Q78 54 68 56 Q65 58 70 64" fill="#6D4C41" stroke="#120E1E" stroke-width="2"/>
+      <!-- Back flap -->
+      <path d="M120 62 Q122 54 132 56 Q135 58 130 64" fill="#6D4C41" stroke="#120E1E" stroke-width="2"/>
+      <!-- Hat band -->
+      <rect x="78" y="58" width="44" height="4" rx="2" fill="#3E2723" stroke="none"/>
+    </g>
+
+    <!-- Face details -->
+    <!-- Left Eye -->
+    <g class="cat-eyes-blink" style="transform-origin: 85px 92px;">
+      <ellipse cx="85" cy="92" rx="9" ry="10" fill="white" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="85" cy="93" r="6" fill="#FFB800"/>
+      <circle cx="85" cy="93" r="3.5" fill="#120E1E"/>
+      <circle cx="83" cy="90" r="2" fill="white"/>
+    </g>
+
+    <!-- Right Eye -->
+    <g class="cat-eyes-blink" style="transform-origin: 115px 92px;">
+      <ellipse cx="115" cy="92" rx="9" ry="10" fill="white" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="115" cy="93" r="6" fill="#FFB800"/>
+      <circle cx="115" cy="93" r="3.5" fill="#120E1E"/>
+      <circle cx="113" cy="90" r="2" fill="white"/>
+    </g>
+
+    <!-- Nose -->
+    <polygon points="100,102 96,108 104,108" fill="#FF6B8B" stroke="#120E1E" stroke-width="1.5"/>
+
+    <!-- Mouth -->
+    <path d="M96 110 Q100 115 104 110" fill="none" stroke="#120E1E" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Whiskers left -->
+    <line x1="60" y1="96" x2="82" y2="100" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="58" y1="102" x2="81" y2="104" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="62" y1="108" x2="83" y2="107" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+
+    <!-- Whiskers right -->
+    <line x1="140" y1="96" x2="118" y2="100" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="142" y1="102" x2="119" y2="104" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="138" y1="108" x2="117" y2="107" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+
+    <!-- Magnifying Glass -->
+    <g class="cat-magnifier-wobble" style="transform-origin: 148px 110px;">
+      <!-- Handle -->
+      <line x1="145" y1="115" x2="158" y2="140" stroke="#FFB800" stroke-width="5" stroke-linecap="round"/>
+      <line x1="145" y1="115" x2="158" y2="140" stroke="#120E1E" stroke-width="2" stroke-linecap="round" opacity="0.15"/>
+      <!-- Glass circle -->
+      <circle cx="140" cy="105" r="16" fill="#E3F2FD" fill-opacity="0.4" stroke="#FFB800" stroke-width="4"/>
+      <circle cx="140" cy="105" r="16" fill="none" stroke="#120E1E" stroke-width="1.5" opacity="0.2"/>
+      <!-- Glass shine -->
+      <path d="M132 98 Q136 94 140 96" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    </g>
+  </svg>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SVG 2: Role Civilian Cat 😺                                   -->
+<!-- ============================================================ -->
+<div th:fragment="role-civilian-cat">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 180"
+       style="max-width: 140px; width: 100%;" role="img" aria-label="Civilian Cat - Confused innocent cat">
+
+    <!-- Floating question mark -->
+    <g class="cat-float-question" style="transform-origin: 110px 18px;">
+      <text x="110" y="28" font-family="'Comic Sans MS', cursive, sans-serif" font-size="28" font-weight="bold"
+            fill="#FFB800" stroke="#120E1E" stroke-width="1" text-anchor="middle">?</text>
+    </g>
+
+    <!-- Body -->
+    <ellipse cx="80" cy="148" rx="42" ry="30" fill="#F5A623" stroke="#120E1E" stroke-width="2.5"/>
+    <ellipse cx="80" cy="152" rx="30" ry="18" fill="#FFEAA7" stroke="none"/>
+
+    <!-- Head -->
+    <circle cx="80" cy="85" r="40" fill="#F5A623" stroke="#120E1E" stroke-width="2.5"/>
+
+    <!-- Left Ear (slightly droopy/tilted) -->
+    <polygon points="50,62 38,18 68,48" fill="#F5A623" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"
+             transform="rotate(8, 50, 62)"/>
+    <polygon points="52,56 43,28 64,48" fill="#FF6B8B" stroke="none"
+             transform="rotate(8, 50, 62)"/>
+
+    <!-- Right Ear (slightly droopy/tilted) -->
+    <polygon points="110,62 122,18 92,48" fill="#F5A623" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"
+             transform="rotate(-8, 110, 62)"/>
+    <polygon points="108,56 117,28 96,48" fill="#FF6B8B" stroke="none"
+             transform="rotate(-8, 110, 62)"/>
+
+    <!-- Left Eye (wide, surprised) -->
+    <g class="cat-eyes-blink-slow" style="transform-origin: 65px 82px;">
+      <ellipse cx="65" cy="82" rx="11" ry="13" fill="white" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="65" cy="83" r="7" fill="#FFB800"/>
+      <circle cx="65" cy="83" r="5" fill="#120E1E"/>
+      <circle cx="63" cy="80" r="2.5" fill="white"/>
+      <circle cx="67" cy="84" r="1.2" fill="white"/>
+    </g>
+
+    <!-- Right Eye (wide, surprised) -->
+    <g class="cat-eyes-blink-slow" style="transform-origin: 95px 82px;">
+      <ellipse cx="95" cy="82" rx="11" ry="13" fill="white" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="95" cy="83" r="7" fill="#FFB800"/>
+      <circle cx="95" cy="83" r="5" fill="#120E1E"/>
+      <circle cx="93" cy="80" r="2.5" fill="white"/>
+      <circle cx="97" cy="84" r="1.2" fill="white"/>
+    </g>
+
+    <!-- Nose -->
+    <polygon points="80,96 76,102 84,102" fill="#FF6B8B" stroke="#120E1E" stroke-width="1.5"/>
+
+    <!-- Mouth - surprised "O" -->
+    <ellipse cx="80" cy="110" rx="5" ry="6" fill="#C0392B" stroke="#120E1E" stroke-width="1.5"/>
+
+    <!-- Whiskers left (droopy/confused) -->
+    <line x1="38" y1="92" x2="60" y2="95" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="36" y1="100" x2="59" y2="100" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="40" y1="108" x2="61" y2="104" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+
+    <!-- Whiskers right (droopy/confused) -->
+    <line x1="122" y1="92" x2="100" y2="95" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="124" y1="100" x2="101" y2="100" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="120" y1="108" x2="99" y2="104" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SVG 3: Role Spy Cat 🕵️                                       -->
+<!-- ============================================================ -->
+<div th:fragment="role-spy-cat">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 180"
+       style="max-width: 140px; width: 100%;" role="img" aria-label="Spy Cat - Cunning cat with sunglasses">
+
+    <!-- Body -->
+    <ellipse cx="80" cy="148" rx="42" ry="30" fill="#2D2D2D" stroke="#120E1E" stroke-width="2.5"/>
+    <ellipse cx="80" cy="152" rx="28" ry="16" fill="#3D3D3D" stroke="none"/>
+
+    <!-- Coat collar / popped collar -->
+    <path d="M55 130 Q52 118 58 112 L72 125 Z" fill="#2D264B" stroke="#120E1E" stroke-width="2"/>
+    <path d="M105 130 Q108 118 102 112 L88 125 Z" fill="#2D264B" stroke="#120E1E" stroke-width="2"/>
+
+    <!-- Head -->
+    <circle cx="80" cy="82" r="40" fill="#2D2D2D" stroke="#120E1E" stroke-width="2.5"/>
+    <!-- Subtle highlight on head -->
+    <circle cx="74" cy="72" r="18" fill="#3D3D3D" opacity="0.4"/>
+
+    <!-- Left Ear -->
+    <polygon points="48,58 38,14 70,44" fill="#2D2D2D" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+    <polygon points="50,52 43,24 66,44" fill="#2D264B" stroke="none"/>
+
+    <!-- Right Ear -->
+    <polygon points="112,58 122,14 90,44" fill="#2D2D2D" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+    <polygon points="110,52 117,24 94,44" fill="#2D264B" stroke="none"/>
+
+    <!-- Sunglasses -->
+    <g>
+      <!-- Bridge -->
+      <path d="M68 78 Q80 74 92 78" fill="none" stroke="#120E1E" stroke-width="3"/>
+      <!-- Left lens -->
+      <ellipse cx="60" cy="80" rx="16" ry="12" fill="#1A1A1A" stroke="#120E1E" stroke-width="2.5"/>
+      <!-- Right lens -->
+      <ellipse cx="100" cy="80" rx="16" ry="12" fill="#1A1A1A" stroke="#120E1E" stroke-width="2.5"/>
+      <!-- Temple arms -->
+      <line x1="44" y1="78" x2="38" y2="72" stroke="#120E1E" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="116" y1="78" x2="122" y2="72" stroke="#120E1E" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- Glint on left lens -->
+      <line x1="52" y1="74" x2="68" y2="78" class="cat-glasses-glint"
+            stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Glint on right lens -->
+      <line x1="92" y1="74" x2="108" y2="78" class="cat-glasses-glint"
+            stroke="white" stroke-width="2.5" stroke-linecap="round" style="animation-delay: 0.3s;"/>
+    </g>
+
+    <!-- Nose -->
+    <polygon points="80,94 76,99 84,99" fill="#555" stroke="#120E1E" stroke-width="1.5"/>
+
+    <!-- Devious smirk with fang -->
+    <path d="M72 104 Q78 109 88 104" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+    <!-- One fang tooth -->
+    <path d="M86 104 L88 109 L90 104" fill="white" stroke="#120E1E" stroke-width="1"/>
+
+    <!-- Whiskers left (sharp confident angle) -->
+    <line x1="34" y1="88" x2="58" y2="94" stroke="#555" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="32" y1="96" x2="57" y2="98" stroke="#555" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="36" y1="104" x2="59" y2="101" stroke="#555" stroke-width="1.2" stroke-linecap="round"/>
+
+    <!-- Whiskers right (sharp confident angle) -->
+    <line x1="126" y1="88" x2="102" y2="94" stroke="#555" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="128" y1="96" x2="103" y2="98" stroke="#555" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="124" y1="104" x2="101" y2="101" stroke="#555" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SVG 4: Role Mr. White Cat 📦                                  -->
+<!-- ============================================================ -->
+<div th:fragment="role-mrwhite-cat">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 180"
+       style="max-width: 140px; width: 100%;" role="img" aria-label="Mr. White Cat - Cat hiding in a cardboard box">
+
+    <!-- Box group with wobble animation -->
+    <g class="cat-box-wobble" style="transform-origin: 80px 170px;">
+
+      <!-- Cat ears peeking above box -->
+      <polygon points="50,55 44,38 60,50" fill="#F5A623" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+      <polygon points="52,52 47,42 58,50" fill="#FF6B8B" stroke="none"/>
+      <polygon points="110,55 116,38 100,50" fill="#F5A623" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+      <polygon points="108,52 113,42 102,50" fill="#FF6B8B" stroke="none"/>
+
+      <!-- Box back panel -->
+      <rect x="28" y="58" width="104" height="100" rx="3" fill="#C4A882" stroke="#120E1E" stroke-width="2.5"/>
+
+      <!-- Box corrugation lines -->
+      <line x1="35" y1="80" x2="125" y2="80" stroke="#A0845C" stroke-width="0.8" opacity="0.4"/>
+      <line x1="35" y1="100" x2="125" y2="100" stroke="#A0845C" stroke-width="0.8" opacity="0.4"/>
+      <line x1="35" y1="120" x2="125" y2="120" stroke="#A0845C" stroke-width="0.8" opacity="0.4"/>
+
+      <!-- Box front flap edges -->
+      <path d="M28 58 L45 48 L80 46 L115 48 L132 58" fill="#D4B892" stroke="#120E1E" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Flap fold lines -->
+      <line x1="45" y1="48" x2="45" y2="58" stroke="#A0845C" stroke-width="1.5"/>
+      <line x1="115" y1="48" x2="115" y2="58" stroke="#A0845C" stroke-width="1.5"/>
+
+      <!-- Tape marks -->
+      <rect x="65" y="44" width="30" height="8" rx="1" fill="#D4C5A0" stroke="#A0845C" stroke-width="0.8" opacity="0.6"/>
+
+      <!-- "?!" text on box -->
+      <text x="80" y="140" font-family="'Comic Sans MS', cursive, sans-serif" font-size="22" font-weight="bold"
+            fill="#5D4037" stroke="#120E1E" stroke-width="0.5" text-anchor="middle" opacity="0.7">?!</text>
+
+      <!-- Eye holes - rough circles -->
+      <ellipse cx="60" cy="92" rx="14" ry="13" fill="#3D2B1F" stroke="#120E1E" stroke-width="2"/>
+      <ellipse cx="100" cy="92" rx="14" ry="13" fill="#3D2B1F" stroke="#120E1E" stroke-width="2"/>
+
+      <!-- Cat eyes peeking through holes -->
+      <g class="cat-eye-shift" style="transform-origin: 80px 92px;">
+        <!-- Left eye -->
+        <circle cx="60" cy="92" r="8" fill="#FFB800"/>
+        <circle cx="60" cy="92" r="5" fill="#120E1E"/>
+        <circle cx="58" cy="89" r="2" fill="white"/>
+        <!-- Right eye -->
+        <circle cx="100" cy="92" r="8" fill="#FFB800"/>
+        <circle cx="100" cy="92" r="5" fill="#120E1E"/>
+        <circle cx="98" cy="89" r="2" fill="white"/>
+      </g>
+
+      <!-- Small paw tips at bottom -->
+      <ellipse cx="55" cy="160" rx="10" ry="5" fill="#F5A623" stroke="#120E1E" stroke-width="2"/>
+      <ellipse cx="105" cy="160" rx="10" ry="5" fill="#F5A623" stroke="#120E1E" stroke-width="2"/>
+      <!-- Paw toes -->
+      <circle cx="50" cy="159" r="1.5" fill="#E8941C"/>
+      <circle cx="55" cy="158" r="1.5" fill="#E8941C"/>
+      <circle cx="60" cy="159" r="1.5" fill="#E8941C"/>
+      <circle cx="100" cy="159" r="1.5" fill="#E8941C"/>
+      <circle cx="105" cy="158" r="1.5" fill="#E8941C"/>
+      <circle cx="110" cy="159" r="1.5" fill="#E8941C"/>
+    </g>
+  </svg>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SVG 5: All 8 Cat Avatars 🎭                                   -->
+<!-- ============================================================ -->
+<div th:fragment="cat-avatars" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center;">
+
+  <!-- Avatar 1 - Whiskers 😄 Orange cat, big happy grin, red bow tie -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Whiskers - Happy orange cat">
+      <circle cx="40" cy="40" r="38" fill="#FFEAA7" stroke="#120E1E" stroke-width="2.5"/>
+      <!-- Face -->
+      <circle cx="40" cy="42" r="28" fill="#F5A623" stroke="#120E1E" stroke-width="2"/>
+      <!-- Ears -->
+      <polygon points="18,24 12,4 30,18" fill="#F5A623" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#F5A623" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#FF6B8B"/>
+      <!-- Eyes -->
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 0s;">
+        <ellipse cx="30" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="30" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="29" cy="37" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 0s;">
+        <ellipse cx="50" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="50" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="49" cy="37" r="1.2" fill="white"/>
+      </g>
+      <!-- Nose -->
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <!-- Big happy grin -->
+      <path d="M30 52 Q35 60 40 56 Q45 60 50 52" fill="none" stroke="#120E1E" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Red bow tie -->
+      <polygon points="40,64 34,60 34,68" fill="#E74C3C" stroke="#120E1E" stroke-width="1.5"/>
+      <polygon points="40,64 46,60 46,68" fill="#E74C3C" stroke="#120E1E" stroke-width="1.5"/>
+      <circle cx="40" cy="64" r="2.5" fill="#C0392B" stroke="#120E1E" stroke-width="1"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="44" x2="25" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="14" y1="50" x2="26" y2="49" stroke="#120E1E" stroke-width="1"/>
+      <line x1="55" y1="46" x2="68" y2="44" stroke="#120E1E" stroke-width="1"/>
+      <line x1="54" y1="49" x2="66" y2="50" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 2 - Shadow 😎 Black cat, tiny cool sunglasses -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Shadow - Cool black cat">
+      <circle cx="40" cy="40" r="38" fill="#DDA0DD" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#2D2D2D" stroke="#120E1E" stroke-width="2"/>
+      <!-- Ears -->
+      <polygon points="18,24 12,4 30,18" fill="#2D2D2D" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#2D264B"/>
+      <polygon points="62,24 68,4 50,18" fill="#2D2D2D" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#2D264B"/>
+      <!-- Sunglasses -->
+      <g class="cat-eyes-blink" style="transform-origin: 40px 38px; animation-delay: 0.7s;">
+        <rect x="20" y="33" width="16" height="10" rx="3" fill="#1A1A1A" stroke="#120E1E" stroke-width="1.5"/>
+        <rect x="44" y="33" width="16" height="10" rx="3" fill="#1A1A1A" stroke="#120E1E" stroke-width="1.5"/>
+        <line x1="36" y1="37" x2="44" y2="37" stroke="#120E1E" stroke-width="1.5"/>
+      </g>
+      <!-- Nose -->
+      <polygon points="40,46 38,49 42,49" fill="#555" stroke="#120E1E" stroke-width="1"/>
+      <!-- Calm flat mouth -->
+      <line x1="35" y1="54" x2="45" y2="54" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="44" x2="25" y2="46" stroke="#555" stroke-width="1"/>
+      <line x1="14" y1="50" x2="26" y2="49" stroke="#555" stroke-width="1"/>
+      <line x1="55" y1="46" x2="68" y2="44" stroke="#555" stroke-width="1"/>
+      <line x1="54" y1="49" x2="66" y2="50" stroke="#555" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 3 - Mittens 🤗 White-gray fluffy cat, happy squinty eyes, rosy cheeks -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Mittens - Fluffy happy cat">
+      <circle cx="40" cy="40" r="38" fill="#B5EAD7" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#E8E8E8" stroke="#120E1E" stroke-width="2"/>
+      <!-- Fluffy cheek tufts -->
+      <circle cx="16" cy="44" r="6" fill="#E8E8E8" stroke="#120E1E" stroke-width="1.5"/>
+      <circle cx="64" cy="44" r="6" fill="#E8E8E8" stroke="#120E1E" stroke-width="1.5"/>
+      <!-- Ears -->
+      <polygon points="18,24 12,4 30,18" fill="#E8E8E8" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#E8E8E8" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#FF6B8B"/>
+      <!-- Happy squinty eyes (^_^) -->
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 1.4s;">
+        <path d="M24 40 Q30 34 36 40" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 1.4s;">
+        <path d="M44 40 Q50 34 56 40" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <!-- Rosy cheeks -->
+      <circle cx="24" cy="46" r="4" fill="#FFB5C5" opacity="0.6"/>
+      <circle cx="56" cy="46" r="4" fill="#FFB5C5" opacity="0.6"/>
+      <!-- Nose -->
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <!-- Small happy mouth -->
+      <path d="M36 52 Q40 56 44 52" fill="none" stroke="#120E1E" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="10" y1="44" x2="22" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="58" y1="46" x2="70" y2="44" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 4 - Ginger 😼 Ginger tabby, smug half-grin, one eyebrow up -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Ginger - Smug ginger tabby cat">
+      <circle cx="40" cy="40" r="38" fill="#FFD5B8" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#E8941C" stroke="#120E1E" stroke-width="2"/>
+      <!-- Tabby stripes -->
+      <path d="M30 26 Q40 22 50 26" fill="none" stroke="#C0780A" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M28 32 Q40 28 52 32" fill="none" stroke="#C0780A" stroke-width="2" stroke-linecap="round"/>
+      <!-- Ears -->
+      <polygon points="18,24 12,4 30,18" fill="#E8941C" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#E8941C" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#FF6B8B"/>
+      <!-- Eyes - one normal, one with raised eyebrow -->
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 2.1s;">
+        <ellipse cx="30" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="30" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="29" cy="37" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 2.1s;">
+        <ellipse cx="50" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="50" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="49" cy="37" r="1.2" fill="white"/>
+      </g>
+      <!-- Raised eyebrow on right -->
+      <path d="M44 30 Q50 26 56 30" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+      <!-- Nose -->
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <!-- Smug half grin -->
+      <path d="M34 53 Q38 54 42 52 Q46 56 52 52" fill="none" stroke="#120E1E" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="44" x2="25" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="55" y1="46" x2="68" y2="44" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 5 - Snowball 😇 Pure white cat, innocent wide eyes, tiny halo -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Snowball - Innocent white cat with halo">
+      <circle cx="40" cy="40" r="38" fill="#C7CEEA" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="44" r="28" fill="white" stroke="#120E1E" stroke-width="2"/>
+      <!-- Halo -->
+      <ellipse cx="40" cy="12" rx="14" ry="4" fill="none" stroke="#FFD700" stroke-width="2.5" opacity="0.8"/>
+      <!-- Ears -->
+      <polygon points="18,26 12,6 30,20" fill="white" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,22 15,10 28,20" fill="#FFB5C5"/>
+      <polygon points="62,26 68,6 50,20" fill="white" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,22 65,10 52,20" fill="#FFB5C5"/>
+      <!-- Wide innocent eyes -->
+      <g class="cat-eyes-blink" style="transform-origin: 30px 40px; animation-delay: 2.8s;">
+        <ellipse cx="30" cy="40" rx="7" ry="8" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="30" cy="41" r="4.5" fill="#4FC3F7"/>
+        <circle cx="30" cy="41" r="2.5" fill="#120E1E"/>
+        <circle cx="28" cy="38" r="1.8" fill="white"/>
+        <circle cx="32" cy="42" r="0.8" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 40px; animation-delay: 2.8s;">
+        <ellipse cx="50" cy="40" rx="7" ry="8" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="50" cy="41" r="4.5" fill="#4FC3F7"/>
+        <circle cx="50" cy="41" r="2.5" fill="#120E1E"/>
+        <circle cx="48" cy="38" r="1.8" fill="white"/>
+        <circle cx="52" cy="42" r="0.8" fill="white"/>
+      </g>
+      <!-- Nose -->
+      <polygon points="40,50 38,53 42,53" fill="#FFB5C5" stroke="#120E1E" stroke-width="1"/>
+      <!-- Tiny smile -->
+      <path d="M37 56 Q40 59 43 56" fill="none" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="48" x2="25" y2="49" stroke="#C0C0C0" stroke-width="1"/>
+      <line x1="55" y1="49" x2="68" y2="48" stroke="#C0C0C0" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 6 - Patches 🤪 Calico cat, tongue out, crossed eyes -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Patches - Silly calico cat">
+      <circle cx="40" cy="40" r="38" fill="#FFDAC1" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="white" stroke="#120E1E" stroke-width="2"/>
+      <!-- Calico patches -->
+      <circle cx="25" cy="34" r="10" fill="#F5A623" stroke="none"/>
+      <circle cx="55" cy="36" r="9" fill="#2D2D2D" stroke="none"/>
+      <circle cx="45" cy="56" r="8" fill="#F5A623" stroke="none"/>
+      <!-- Ears -->
+      <polygon points="18,24 12,4 30,18" fill="#F5A623" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#2D2D2D" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#444"/>
+      <!-- Crossed eyes -->
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 3.5s;">
+        <ellipse cx="30" cy="38" rx="6" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="33" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="32" cy="37" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 3.5s;">
+        <ellipse cx="50" cy="38" rx="6" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="47" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="46" cy="37" r="1.2" fill="white"/>
+      </g>
+      <!-- Nose -->
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <!-- Open mouth with tongue -->
+      <ellipse cx="40" cy="55" rx="6" ry="4" fill="#C0392B" stroke="#120E1E" stroke-width="1.2"/>
+      <!-- Tongue sticking out -->
+      <ellipse cx="40" cy="60" rx="4" ry="5" fill="#FF6B8B" stroke="#120E1E" stroke-width="1.2"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="44" x2="24" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="56" y1="46" x2="68" y2="44" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 7 - Midnight 😈 Dark purple-black cat, mischievous grin, witch hat -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Midnight - Mischievous cat with witch hat">
+      <circle cx="40" cy="40" r="38" fill="#E2B6CF" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="46" r="26" fill="#2D264B" stroke="#120E1E" stroke-width="2"/>
+      <!-- Witch hat -->
+      <polygon points="40,0 28,26 52,26" fill="#1A1A2E" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <ellipse cx="40" cy="26" rx="16" ry="4" fill="#1A1A2E" stroke="#120E1E" stroke-width="1.5"/>
+      <!-- Hat band -->
+      <rect x="28" y="22" width="24" height="4" rx="1" fill="#8B5CF6"/>
+      <!-- Hat buckle -->
+      <rect x="36" y="21" width="8" height="6" rx="1" fill="#FFD700" stroke="#120E1E" stroke-width="0.8"/>
+      <!-- Ears -->
+      <polygon points="20,30 16,14 30,26" fill="#2D264B" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,30 64,14 50,26" fill="#2D264B" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <!-- Eyes - gleaming -->
+      <g class="cat-eyes-blink" style="transform-origin: 32px 42px; animation-delay: 0.3s;">
+        <ellipse cx="32" cy="42" rx="5" ry="5" fill="#7CFC00" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="32" cy="42" rx="2" ry="4" fill="#120E1E"/>
+        <circle cx="30" cy="40" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 48px 42px; animation-delay: 0.3s;">
+        <ellipse cx="48" cy="42" rx="5" ry="5" fill="#7CFC00" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="48" cy="42" rx="2" ry="4" fill="#120E1E"/>
+        <circle cx="46" cy="40" r="1.2" fill="white"/>
+      </g>
+      <!-- Nose -->
+      <polygon points="40,50 38,53 42,53" fill="#8B5CF6" stroke="#120E1E" stroke-width="1"/>
+      <!-- Mischievous grin -->
+      <path d="M30 58 Q34 64 40 60 Q46 64 50 58" fill="none" stroke="#120E1E" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="48" x2="25" y2="50" stroke="#555" stroke-width="1"/>
+      <line x1="55" y1="50" x2="68" y2="48" stroke="#555" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 8 - Biscuit 😴 Brown/cream cat, sleepy eyes, droopy ears -->
+  <div style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Biscuit - Sleepy brown cat">
+      <circle cx="40" cy="40" r="38" fill="#F0E6CC" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#C4A882" stroke="#120E1E" stroke-width="2"/>
+      <!-- Lighter muzzle area -->
+      <ellipse cx="40" cy="52" rx="14" ry="10" fill="#E8D5B7" stroke="none"/>
+      <!-- Droopy ears -->
+      <polygon points="18,28 8,12 28,16" fill="#C4A882" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"
+               transform="rotate(15, 18, 28)"/>
+      <polygon points="20,24 12,14 26,16" fill="#FF6B8B" transform="rotate(15, 18, 28)"/>
+      <polygon points="62,28 72,12 52,16" fill="#C4A882" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"
+               transform="rotate(-15, 62, 28)"/>
+      <polygon points="60,24 68,14 54,16" fill="#FF6B8B" transform="rotate(-15, 62, 28)"/>
+      <!-- Half-closed sleepy eyes -->
+      <g class="cat-eyes-blink" style="transform-origin: 30px 40px; animation-delay: 1.0s;">
+        <ellipse cx="30" cy="40" rx="6" ry="3" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="30" cy="41" rx="3" ry="2" fill="#120E1E"/>
+        <!-- Heavy eyelid -->
+        <path d="M24 38 Q30 36 36 38" fill="#C4A882" stroke="#120E1E" stroke-width="1"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 40px; animation-delay: 1.0s;">
+        <ellipse cx="50" cy="40" rx="6" ry="3" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="50" cy="41" rx="3" ry="2" fill="#120E1E"/>
+        <!-- Heavy eyelid -->
+        <path d="M44 38 Q50 36 56 38" fill="#C4A882" stroke="#120E1E" stroke-width="1"/>
+      </g>
+      <!-- Nose -->
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <!-- Sleepy little mouth -->
+      <path d="M37 52 Q40 54 43 52" fill="none" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="12" y1="46" x2="24" y2="47" stroke="#120E1E" stroke-width="1"/>
+      <line x1="56" y1="47" x2="68" y2="46" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- Individual Avatar by Index (1-8)                              -->
+<!-- ============================================================ -->
+<div th:fragment="cat-avatar(index)" th:switch="${index}">
+
+  <!-- Avatar 1 - Whiskers -->
+  <div th:case="1" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Whiskers - Happy orange cat">
+      <circle cx="40" cy="40" r="38" fill="#FFEAA7" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#F5A623" stroke="#120E1E" stroke-width="2"/>
+      <polygon points="18,24 12,4 30,18" fill="#F5A623" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#F5A623" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#FF6B8B"/>
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 0s;">
+        <ellipse cx="30" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="30" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="29" cy="37" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 0s;">
+        <ellipse cx="50" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="50" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="49" cy="37" r="1.2" fill="white"/>
+      </g>
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <path d="M30 52 Q35 60 40 56 Q45 60 50 52" fill="none" stroke="#120E1E" stroke-width="1.8" stroke-linecap="round"/>
+      <polygon points="40,64 34,60 34,68" fill="#E74C3C" stroke="#120E1E" stroke-width="1.5"/>
+      <polygon points="40,64 46,60 46,68" fill="#E74C3C" stroke="#120E1E" stroke-width="1.5"/>
+      <circle cx="40" cy="64" r="2.5" fill="#C0392B" stroke="#120E1E" stroke-width="1"/>
+      <line x1="12" y1="44" x2="25" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="14" y1="50" x2="26" y2="49" stroke="#120E1E" stroke-width="1"/>
+      <line x1="55" y1="46" x2="68" y2="44" stroke="#120E1E" stroke-width="1"/>
+      <line x1="54" y1="49" x2="66" y2="50" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 2 - Shadow -->
+  <div th:case="2" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Shadow - Cool black cat">
+      <circle cx="40" cy="40" r="38" fill="#DDA0DD" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#2D2D2D" stroke="#120E1E" stroke-width="2"/>
+      <polygon points="18,24 12,4 30,18" fill="#2D2D2D" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#2D264B"/>
+      <polygon points="62,24 68,4 50,18" fill="#2D2D2D" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#2D264B"/>
+      <g class="cat-eyes-blink" style="transform-origin: 40px 38px; animation-delay: 0.7s;">
+        <rect x="20" y="33" width="16" height="10" rx="3" fill="#1A1A1A" stroke="#120E1E" stroke-width="1.5"/>
+        <rect x="44" y="33" width="16" height="10" rx="3" fill="#1A1A1A" stroke="#120E1E" stroke-width="1.5"/>
+        <line x1="36" y1="37" x2="44" y2="37" stroke="#120E1E" stroke-width="1.5"/>
+      </g>
+      <polygon points="40,46 38,49 42,49" fill="#555" stroke="#120E1E" stroke-width="1"/>
+      <line x1="35" y1="54" x2="45" y2="54" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="12" y1="44" x2="25" y2="46" stroke="#555" stroke-width="1"/>
+      <line x1="14" y1="50" x2="26" y2="49" stroke="#555" stroke-width="1"/>
+      <line x1="55" y1="46" x2="68" y2="44" stroke="#555" stroke-width="1"/>
+      <line x1="54" y1="49" x2="66" y2="50" stroke="#555" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 3 - Mittens -->
+  <div th:case="3" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Mittens - Fluffy happy cat">
+      <circle cx="40" cy="40" r="38" fill="#B5EAD7" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#E8E8E8" stroke="#120E1E" stroke-width="2"/>
+      <circle cx="16" cy="44" r="6" fill="#E8E8E8" stroke="#120E1E" stroke-width="1.5"/>
+      <circle cx="64" cy="44" r="6" fill="#E8E8E8" stroke="#120E1E" stroke-width="1.5"/>
+      <polygon points="18,24 12,4 30,18" fill="#E8E8E8" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#E8E8E8" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#FF6B8B"/>
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 1.4s;">
+        <path d="M24 40 Q30 34 36 40" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 1.4s;">
+        <path d="M44 40 Q50 34 56 40" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <circle cx="24" cy="46" r="4" fill="#FFB5C5" opacity="0.6"/>
+      <circle cx="56" cy="46" r="4" fill="#FFB5C5" opacity="0.6"/>
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <path d="M36 52 Q40 56 44 52" fill="none" stroke="#120E1E" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10" y1="44" x2="22" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="58" y1="46" x2="70" y2="44" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 4 - Ginger -->
+  <div th:case="4" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Ginger - Smug ginger tabby cat">
+      <circle cx="40" cy="40" r="38" fill="#FFD5B8" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#E8941C" stroke="#120E1E" stroke-width="2"/>
+      <path d="M30 26 Q40 22 50 26" fill="none" stroke="#C0780A" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M28 32 Q40 28 52 32" fill="none" stroke="#C0780A" stroke-width="2" stroke-linecap="round"/>
+      <polygon points="18,24 12,4 30,18" fill="#E8941C" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#E8941C" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#FF6B8B"/>
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 2.1s;">
+        <ellipse cx="30" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="30" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="29" cy="37" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 2.1s;">
+        <ellipse cx="50" cy="38" rx="5" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="50" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="49" cy="37" r="1.2" fill="white"/>
+      </g>
+      <path d="M44 30 Q50 26 56 30" fill="none" stroke="#120E1E" stroke-width="2" stroke-linecap="round"/>
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <path d="M34 53 Q38 54 42 52 Q46 56 52 52" fill="none" stroke="#120E1E" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="12" y1="44" x2="25" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="55" y1="46" x2="68" y2="44" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 5 - Snowball -->
+  <div th:case="5" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Snowball - Innocent white cat with halo">
+      <circle cx="40" cy="40" r="38" fill="#C7CEEA" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="44" r="28" fill="white" stroke="#120E1E" stroke-width="2"/>
+      <ellipse cx="40" cy="12" rx="14" ry="4" fill="none" stroke="#FFD700" stroke-width="2.5" opacity="0.8"/>
+      <polygon points="18,26 12,6 30,20" fill="white" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,22 15,10 28,20" fill="#FFB5C5"/>
+      <polygon points="62,26 68,6 50,20" fill="white" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,22 65,10 52,20" fill="#FFB5C5"/>
+      <g class="cat-eyes-blink" style="transform-origin: 30px 40px; animation-delay: 2.8s;">
+        <ellipse cx="30" cy="40" rx="7" ry="8" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="30" cy="41" r="4.5" fill="#4FC3F7"/>
+        <circle cx="30" cy="41" r="2.5" fill="#120E1E"/>
+        <circle cx="28" cy="38" r="1.8" fill="white"/>
+        <circle cx="32" cy="42" r="0.8" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 40px; animation-delay: 2.8s;">
+        <ellipse cx="50" cy="40" rx="7" ry="8" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="50" cy="41" r="4.5" fill="#4FC3F7"/>
+        <circle cx="50" cy="41" r="2.5" fill="#120E1E"/>
+        <circle cx="48" cy="38" r="1.8" fill="white"/>
+        <circle cx="52" cy="42" r="0.8" fill="white"/>
+      </g>
+      <polygon points="40,50 38,53 42,53" fill="#FFB5C5" stroke="#120E1E" stroke-width="1"/>
+      <path d="M37 56 Q40 59 43 56" fill="none" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="12" y1="48" x2="25" y2="49" stroke="#C0C0C0" stroke-width="1"/>
+      <line x1="55" y1="49" x2="68" y2="48" stroke="#C0C0C0" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 6 - Patches -->
+  <div th:case="6" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Patches - Silly calico cat">
+      <circle cx="40" cy="40" r="38" fill="#FFDAC1" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="white" stroke="#120E1E" stroke-width="2"/>
+      <circle cx="25" cy="34" r="10" fill="#F5A623" stroke="none"/>
+      <circle cx="55" cy="36" r="9" fill="#2D2D2D" stroke="none"/>
+      <circle cx="45" cy="56" r="8" fill="#F5A623" stroke="none"/>
+      <polygon points="18,24 12,4 30,18" fill="#F5A623" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="20,20 15,8 28,18" fill="#FF6B8B"/>
+      <polygon points="62,24 68,4 50,18" fill="#2D2D2D" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,20 65,8 52,18" fill="#444"/>
+      <g class="cat-eyes-blink" style="transform-origin: 30px 38px; animation-delay: 3.5s;">
+        <ellipse cx="30" cy="38" rx="6" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="33" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="32" cy="37" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 38px; animation-delay: 3.5s;">
+        <ellipse cx="50" cy="38" rx="6" ry="6" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <circle cx="47" cy="39" r="3" fill="#120E1E"/>
+        <circle cx="46" cy="37" r="1.2" fill="white"/>
+      </g>
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <ellipse cx="40" cy="55" rx="6" ry="4" fill="#C0392B" stroke="#120E1E" stroke-width="1.2"/>
+      <ellipse cx="40" cy="60" rx="4" ry="5" fill="#FF6B8B" stroke="#120E1E" stroke-width="1.2"/>
+      <line x1="12" y1="44" x2="24" y2="46" stroke="#120E1E" stroke-width="1"/>
+      <line x1="56" y1="46" x2="68" y2="44" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 7 - Midnight -->
+  <div th:case="7" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Midnight - Mischievous cat with witch hat">
+      <circle cx="40" cy="40" r="38" fill="#E2B6CF" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="46" r="26" fill="#2D264B" stroke="#120E1E" stroke-width="2"/>
+      <polygon points="40,0 28,26 52,26" fill="#1A1A2E" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <ellipse cx="40" cy="26" rx="16" ry="4" fill="#1A1A2E" stroke="#120E1E" stroke-width="1.5"/>
+      <rect x="28" y="22" width="24" height="4" rx="1" fill="#8B5CF6"/>
+      <rect x="36" y="21" width="8" height="6" rx="1" fill="#FFD700" stroke="#120E1E" stroke-width="0.8"/>
+      <polygon points="20,30 16,14 30,26" fill="#2D264B" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="60,30 64,14 50,26" fill="#2D264B" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"/>
+      <g class="cat-eyes-blink" style="transform-origin: 32px 42px; animation-delay: 0.3s;">
+        <ellipse cx="32" cy="42" rx="5" ry="5" fill="#7CFC00" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="32" cy="42" rx="2" ry="4" fill="#120E1E"/>
+        <circle cx="30" cy="40" r="1.2" fill="white"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 48px 42px; animation-delay: 0.3s;">
+        <ellipse cx="48" cy="42" rx="5" ry="5" fill="#7CFC00" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="48" cy="42" rx="2" ry="4" fill="#120E1E"/>
+        <circle cx="46" cy="40" r="1.2" fill="white"/>
+      </g>
+      <polygon points="40,50 38,53 42,53" fill="#8B5CF6" stroke="#120E1E" stroke-width="1"/>
+      <path d="M30 58 Q34 64 40 60 Q46 64 50 58" fill="none" stroke="#120E1E" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="12" y1="48" x2="25" y2="50" stroke="#555" stroke-width="1"/>
+      <line x1="55" y1="50" x2="68" y2="48" stroke="#555" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- Avatar 8 - Biscuit -->
+  <div th:case="8" style="display: inline-block;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"
+         style="width: 48px; height: 48px;" role="img" aria-label="Biscuit - Sleepy brown cat">
+      <circle cx="40" cy="40" r="38" fill="#F0E6CC" stroke="#120E1E" stroke-width="2.5"/>
+      <circle cx="40" cy="42" r="28" fill="#C4A882" stroke="#120E1E" stroke-width="2"/>
+      <ellipse cx="40" cy="52" rx="14" ry="10" fill="#E8D5B7" stroke="none"/>
+      <polygon points="18,28 8,12 28,16" fill="#C4A882" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"
+               transform="rotate(15, 18, 28)"/>
+      <polygon points="20,24 12,14 26,16" fill="#FF6B8B" transform="rotate(15, 18, 28)"/>
+      <polygon points="62,28 72,12 52,16" fill="#C4A882" stroke="#120E1E" stroke-width="2" stroke-linejoin="round"
+               transform="rotate(-15, 62, 28)"/>
+      <polygon points="60,24 68,14 54,16" fill="#FF6B8B" transform="rotate(-15, 62, 28)"/>
+      <g class="cat-eyes-blink" style="transform-origin: 30px 40px; animation-delay: 1.0s;">
+        <ellipse cx="30" cy="40" rx="6" ry="3" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="30" cy="41" rx="3" ry="2" fill="#120E1E"/>
+        <path d="M24 38 Q30 36 36 38" fill="#C4A882" stroke="#120E1E" stroke-width="1"/>
+      </g>
+      <g class="cat-eyes-blink" style="transform-origin: 50px 40px; animation-delay: 1.0s;">
+        <ellipse cx="50" cy="40" rx="6" ry="3" fill="white" stroke="#120E1E" stroke-width="1.5"/>
+        <ellipse cx="50" cy="41" rx="3" ry="2" fill="#120E1E"/>
+        <path d="M44 38 Q50 36 56 38" fill="#C4A882" stroke="#120E1E" stroke-width="1"/>
+      </g>
+      <polygon points="40,46 38,49 42,49" fill="#FF6B8B" stroke="#120E1E" stroke-width="1"/>
+      <path d="M37 52 Q40 54 43 52" fill="none" stroke="#120E1E" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="12" y1="46" x2="24" y2="47" stroke="#120E1E" stroke-width="1"/>
+      <line x1="56" y1="47" x2="68" y2="46" stroke="#120E1E" stroke-width="1"/>
+    </svg>
+  </div>
+</div>
+
+</body>
+</html>

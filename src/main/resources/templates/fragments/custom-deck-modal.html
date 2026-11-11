@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Custom Deck Management Modal (Host Only) -->
+<div th:fragment="custom-deck-modal" class="modal fade" id="customDeckModal" tabindex="-1" aria-labelledby="customDeckModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content cat-card border-3 border-dark p-3 text-start">
+
+      <!-- Modal Header -->
+      <div class="modal-header border-0 pb-2 pt-0 px-1 d-flex justify-content-between align-items-center">
+        <h3 class="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2" id="customDeckModalLabel" style="font-family: var(--cat-font-heading);">
+          <span>📚</span>
+          <span>Quản Lý Bộ Từ Khóa Cá Nhân</span>
+        </h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body px-1 py-2">
+
+        <!-- Top Metadata: Deck Name & Optional Recovery PIN -->
+        <div class="row g-2 mb-3">
+          <div class="col-12 col-md-8">
+            <label class="cat-label" for="deck-name-input">Tên Bộ Từ (3 - 30 ký tự) *</label>
+            <input type="text"
+                   id="deck-name-input"
+                   class="cat-input"
+                   maxlength="30"
+                   placeholder="Ví dụ: Hội Bạn Thân, Ký Túc Xá, Anime..."
+                   required>
+            <div class="invalid-feedback fw-bold small" id="deck-name-err">Tên bộ từ phải từ 3 đến 30 ký tự!</div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="cat-label" for="deck-pin-input">Mã PIN Khôi Phục (Tùy chọn)</label>
+            <input type="text"
+                   id="deck-pin-input"
+                   class="cat-input"
+                   maxlength="15"
+                   placeholder="Mã PIN 4-15 ký tự">
+            <div class="form-text small" style="font-size: 0.75rem;">Dùng để lấy lại bộ từ khi đổi thiết bị.</div>
+          </div>
+        </div>
+
+        <!-- 3 Tabs Navigation -->
+        <ul class="nav nav-pills nav-fill mb-3 gap-2" id="deckInputTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="cat-btn cat-btn-gold cat-btn-sm w-100 active"
+                    id="tab-manual-btn"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tab-manual"
+                    type="button"
+                    role="tab"
+                    aria-controls="tab-manual"
+                    aria-selected="true">
+              <span>✍️</span> Nhập Tay
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="cat-btn cat-btn-pink cat-btn-sm w-100"
+                    id="tab-paste-btn"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tab-paste"
+                    type="button"
+                    role="tab"
+                    aria-controls="tab-paste"
+                    aria-selected="false">
+              <span>📋</span> Dán Nhanh
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="cat-btn cat-btn-mint cat-btn-sm w-100"
+                    id="tab-upload-btn"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tab-upload"
+                    type="button"
+                    role="tab"
+                    aria-controls="tab-upload"
+                    aria-selected="false">
+              <span>📁</span> Tải File
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content border-top pt-3" id="deckInputTabsContent">
+
+          <!-- TAB 1: NHẬP TAY TRỰC TIẾP (DYNAMIC ROWS) -->
+          <div class="tab-pane fade show active" id="tab-manual" role="tabpanel" aria-labelledby="tab-manual-btn">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-muted">Danh sách cặp từ (Tối thiểu 3 cặp):</span>
+              <span class="badge cat-badge-gold" id="manual-pair-counter">0 cặp</span>
+            </div>
+
+            <!-- Dynamic Rows List -->
+            <div id="dynamic-rows-container" class="d-flex flex-column gap-2 mb-3">
+              <!-- Dynamically populated rows -->
+            </div>
+
+            <button type="button" class="cat-btn cat-btn-sm cat-btn-gold" id="btn-add-deck-row">
+              <span>➕</span> Thêm Cặp Từ
+            </button>
+          </div>
+
+          <!-- TAB 2: DÁN NHANH (QUICK PASTE) -->
+          <div class="tab-pane fade" id="tab-paste" role="tabpanel" aria-labelledby="tab-paste-btn">
+            <label class="cat-label" for="quick-paste-input">Dán danh sách từ (Mỗi dòng một cặp từ):</label>
+            <textarea id="quick-paste-input"
+                      class="cat-input font-monospace small"
+                      rows="7"
+                      placeholder="Các định dạng được hỗ trợ:&#10;Ẩm thực: Cà phê | Trà đá&#10;Bánh mì - Xôi xéo&#10;Mèo , Chó&#10;Bún bò | Phở gà"></textarea>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="small text-muted" id="paste-parsed-summary">Chưa nhận diện cặp từ nào</span>
+              <button type="button" class="cat-btn cat-btn-sm cat-btn-pink" id="btn-apply-paste">
+                <span>⚡</span> Nạp Vào Bảng Nhập Tay
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 3: UPLOAD FILE (.JSON / .CSV <= 100KB) -->
+          <div class="tab-pane fade" id="tab-upload" role="tabpanel" aria-labelledby="tab-upload-btn">
+            <div class="p-3 border-2 border-dashed rounded-4 text-center mb-3" style="border: 2px dashed var(--cat-dark-deep); background: #FAF5FF;">
+              <div class="fs-1 mb-1">📂</div>
+              <div class="fw-bold small text-dark mb-1">Chọn file .JSON hoặc .CSV từ máy tính</div>
+              <div class="small text-muted mb-2" style="font-size: 0.78rem;">Dung lượng tối đa 100KB. Định dạng mẫu: topic,civilianWord,spyWord</div>
+              <input type="file" id="deck-file-upload" class="form-control form-control-sm mx-auto" style="max-width: 280px;" accept=".json,.csv">
+            </div>
+
+            <div id="file-upload-preview" class="d-none alert alert-light border border-2 border-dark rounded-4 py-2 small mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold" id="file-name-display">file.json</span>
+                <span class="badge cat-badge-mint" id="file-pair-count">0 cặp từ</span>
+              </div>
+              <div class="text-muted small" id="file-status-text">Đã đọc dữ liệu thành công!</div>
+            </div>
+
+            <button type="button" class="cat-btn cat-btn-sm cat-btn-mint" id="btn-apply-file" disabled>
+              <span>📥</span> Nạp Dữ Liệu Vào Bảng Nhập Tay
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Saved Decks Section -->
+        <div class="mt-4 pt-3 border-top">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4 class="h6 fw-bold mb-0 text-dark" style="font-family: var(--cat-font-heading);">
+              <span>📂</span> Bộ Từ Cá Nhân Của Bạn (Đã Lưu Trong DB)
+            </h4>
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" id="btn-show-recover-pin">
+              🔑 Khôi phục qua PIN
+            </button>
+          </div>
+
+          <!-- PIN Recovery Input (Hidden by default) -->
+          <div id="pin-recover-box" class="d-none p-2 mb-2 bg-light rounded-3 border border-dark">
+            <div class="d-flex gap-2">
+              <input type="text" id="recover-pin-input" class="cat-input py-1" placeholder="Nhập mã PIN đã đặt...">
+              <button type="button" class="cat-btn cat-btn-sm cat-btn-gold text-nowrap" id="btn-submit-recover-pin">
+                Khôi phục
+              </button>
+            </div>
+          </div>
+
+          <!-- Saved Decks Container -->
+          <div id="saved-decks-list" class="d-flex flex-column gap-2" style="max-height: 180px; overflow-y: auto;">
+            <div class="text-center py-3 text-muted small">Đang tải danh sách bộ từ cá nhân...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer border-0 pt-2 px-1 d-flex justify-content-between">
+        <input type="hidden" id="editing-deck-id" value="">
+        <button type="button" class="cat-btn cat-btn-sm cat-btn-outline text-dark border-dark" data-bs-dismiss="modal">
+          Đóng
+        </button>
+        <button type="button" class="cat-btn cat-btn-sm cat-btn-gold" id="btn-save-custom-deck">
+          <span>💾</span> Lưu Bộ Từ Vào Database
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

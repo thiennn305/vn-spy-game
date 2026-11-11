@@ -1,0 +1,828 @@
+/* ==========================================================================
+   CAT THEME — "Ai là Gián điệp" Detective Cat Theme
+   A playful, mobile-first CSS theme with dark purple tones,
+   cream cards, and cat-detective personality.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Google Fonts Import
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap');
+
+/* --------------------------------------------------------------------------
+   2. CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+  /* Colors — Core palette */
+  --cat-dark: #1A162B;          /* Background chính — Tím Đêm */
+  --cat-dark-deep: #120E1E;     /* Border & shadow */
+  --cat-dark-card: #2D264B;     /* Card tối variant */
+  --cat-cream: #FFF8E7;         /* Card surface — Kem Sữa */
+  --cat-gold: #FFB800;          /* Vàng Mắt Mèo */
+  --cat-pink: #FF6B8B;          /* Hồng Đệm Chân */
+  --cat-mint: #00E5A3;          /* Catnip Mint */
+
+  /* Text colors */
+  --cat-text-dark: #1A162B;
+  --cat-text-light: #FFF8E7;
+
+  /* Typography */
+  --cat-font-heading: 'Fredoka', sans-serif;
+  --cat-font-body: 'Quicksand', sans-serif;
+
+  /* Shape & Effects */
+  --cat-radius: 1.25rem;
+  --cat-border: 3px solid var(--cat-dark-deep);
+  --cat-shadow: 0 5px 0 var(--cat-dark-deep);
+  --cat-shadow-active: 0 2px 0 var(--cat-dark-deep);
+}
+
+/* --------------------------------------------------------------------------
+   3. Base Layout — Mobile-first
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--cat-dark);
+  font-family: var(--cat-font-body);
+  color: var(--cat-text-light);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+/* Paw pattern background — animated diagonal drift */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23FFF8E7' fill-opacity='1'%3E%3Cellipse cx='30' cy='38' rx='8' ry='10'/%3E%3Cellipse cx='18' cy='24' rx='5' ry='6'/%3E%3Cellipse cx='42' cy='24' rx='5' ry='6'/%3E%3Cellipse cx='22' cy='14' rx='4' ry='5'/%3E%3Cellipse cx='38' cy='14' rx='4' ry='5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+  opacity: 0.04;
+  animation: paw-drift 12s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cat-game-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   4. Typography
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--cat-font-heading);
+  color: var(--cat-gold);
+  margin-top: 0;
+}
+
+.cat-title {
+  font-family: var(--cat-font-heading);
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(255, 184, 0, 0.3),
+               0 2px 0 var(--cat-dark-deep);
+}
+
+.cat-subtitle {
+  font-family: var(--cat-font-body);
+  font-weight: 600;
+  color: var(--cat-cream);
+}
+
+/* --------------------------------------------------------------------------
+   5. Card Component — .cat-card
+   -------------------------------------------------------------------------- */
+.cat-card {
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  box-shadow: var(--cat-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--cat-dark-deep);
+}
+
+/* Dark card variant */
+.cat-card-dark {
+  background: var(--cat-dark-card);
+  color: var(--cat-text-light);
+}
+
+/* --------------------------------------------------------------------------
+   6. Button Component — .cat-btn
+   -------------------------------------------------------------------------- */
+.cat-btn {
+  font-family: var(--cat-font-heading);
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  box-shadow: var(--cat-shadow);
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.cat-btn:active {
+  transform: translateY(3px);
+  box-shadow: var(--cat-shadow-active);
+  animation: cat-bounce 0.3s ease;
+}
+
+/* — Color variants — */
+.cat-btn-gold {
+  background: var(--cat-gold);
+  color: var(--cat-text-dark);
+}
+
+.cat-btn-pink {
+  background: var(--cat-pink);
+  color: #fff;
+}
+
+.cat-btn-mint {
+  background: var(--cat-mint);
+  color: var(--cat-text-dark);
+}
+
+.cat-btn-danger {
+  background: #E53E3E;
+  color: #fff;
+}
+
+.cat-btn-outline {
+  background: transparent;
+  color: var(--cat-cream);
+  border-color: var(--cat-cream);
+}
+
+/* — Size variants — */
+.cat-btn-lg {
+  padding: 0.9rem 2rem;
+  font-size: 1.25rem;
+}
+
+.cat-btn-sm {
+  padding: 0.45rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* — Block variant — */
+.cat-btn-block {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   7. Input Component — .cat-input
+   -------------------------------------------------------------------------- */
+.cat-input {
+  font-family: var(--cat-font-body);
+  font-weight: 500;
+  font-size: 1rem;
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  padding: 0.75rem 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.cat-input:focus {
+  outline: none;
+  border-color: var(--cat-gold);
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.25);
+}
+
+.cat-input.is-valid {
+  border-color: var(--cat-mint);
+  box-shadow: 0 0 0 3px rgba(0, 229, 163, 0.15);
+}
+
+.cat-input.is-invalid {
+  border-color: var(--cat-pink);
+  box-shadow: 0 0 0 3px rgba(255, 107, 139, 0.2);
+  animation: shake-error 0.4s ease;
+}
+
+/* Dark input variant */
+.cat-input-dark {
+  background: var(--cat-dark-card);
+  color: var(--cat-text-light);
+}
+
+.cat-input-dark:focus {
+  border-color: var(--cat-gold);
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.25);
+}
+
+/* Form label */
+.cat-label {
+  font-family: var(--cat-font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cat-gold);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+/* Select dropdown */
+.cat-select {
+  font-family: var(--cat-font-body);
+  font-weight: 500;
+  font-size: 1rem;
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  padding: 0.75rem 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231A162B' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.cat-select:focus {
+  outline: none;
+  border-color: var(--cat-gold);
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   8. Flip Card Component — .cat-flip-card
+   -------------------------------------------------------------------------- */
+.cat-flip-card {
+  perspective: 1000px;
+  width: 220px;
+  height: 310px;
+  margin: 0 auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cat-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.cat-flip-card.flipped .cat-flip-inner {
+  transform: rotateY(180deg);
+}
+
+.cat-flip-front,
+.cat-flip-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cat-flip-front {
+  background: var(--cat-dark-card);
+}
+
+.cat-flip-front .paw-icon {
+  font-size: 4rem;
+  animation: paw-glow 2s ease-in-out infinite;
+}
+
+.cat-flip-back {
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  transform: rotateY(180deg);
+  padding: 1.5rem;
+}
+
+.cat-flip-back .word-text {
+  font-family: var(--cat-font-heading);
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--cat-dark);
+}
+
+/* --------------------------------------------------------------------------
+   9. Additional UI Components
+   -------------------------------------------------------------------------- */
+
+/* — Badge — */
+.cat-badge {
+  font-family: var(--cat-font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border: 2px solid var(--cat-dark-deep);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.cat-badge-gold {
+  background: var(--cat-gold);
+  color: var(--cat-text-dark);
+}
+
+.cat-badge-pink {
+  background: var(--cat-pink);
+  color: #fff;
+}
+
+.cat-badge-mint {
+  background: var(--cat-mint);
+  color: var(--cat-text-dark);
+}
+
+/* — Modal — */
+.cat-modal .modal-content {
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  box-shadow: 0 10px 0 var(--cat-dark-deep);
+}
+
+.cat-modal .modal-header {
+  border-bottom: 2px solid rgba(26, 22, 43, 0.1);
+  font-family: var(--cat-font-heading);
+}
+
+.cat-modal .modal-header .modal-title {
+  color: var(--cat-dark);
+  font-family: var(--cat-font-heading);
+  font-weight: 700;
+}
+
+.cat-modal .modal-footer {
+  border-top: 2px solid rgba(26, 22, 43, 0.1);
+}
+
+.cat-modal .modal-backdrop {
+  background: var(--cat-dark-deep);
+}
+
+/* — Divider — */
+.cat-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: rgba(255, 248, 231, 0.3);
+  font-size: 0.85rem;
+}
+
+.cat-divider::before,
+.cat-divider::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 248, 231, 0.12);
+  border-radius: 1px;
+}
+
+.cat-divider .paw-divider-icon {
+  font-size: 1rem;
+  opacity: 0.5;
+}
+
+/* — Avatar Circle — */
+.cat-avatar-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: var(--cat-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cat-font-heading);
+  font-weight: 700;
+  font-size: 1.2rem;
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cat-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* — Player List — */
+.cat-player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cat-player-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: calc(var(--cat-radius) * 0.6);
+  transition: background-color 0.15s ease;
+}
+
+.cat-player-list li:hover {
+  background: rgba(255, 248, 231, 0.06);
+}
+
+.cat-player-list li + li {
+  border-top: 1px solid rgba(255, 248, 231, 0.08);
+}
+
+.cat-player-list .player-name {
+  font-family: var(--cat-font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  flex: 1;
+}
+
+/* — Word Count Badge — */
+.cat-word-count-badge {
+  font-family: var(--cat-font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--cat-gold);
+  color: var(--cat-text-dark);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+
+/* — Toast — */
+.cat-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  box-shadow: var(--cat-shadow);
+  padding: 0.75rem 1.25rem;
+  font-family: var(--cat-font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  z-index: 9999;
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.35s ease;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+
+.cat-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* — Timer — */
+.cat-timer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid var(--cat-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cat-font-heading);
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--cat-gold);
+  position: relative;
+  margin: 0 auto;
+}
+
+.cat-timer.warning {
+  border-color: var(--cat-pink);
+  color: var(--cat-pink);
+  animation: pulse-subtle 1s ease-in-out infinite;
+}
+
+.cat-timer svg {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  transform: rotate(-90deg);
+}
+
+.cat-timer svg circle {
+  fill: none;
+  stroke: var(--cat-gold);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+/* — Header — */
+.cat-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--cat-dark-deep);
+  border-bottom: var(--cat-border);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cat-header .cat-logo {
+  font-family: var(--cat-font-heading);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--cat-gold);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+
+.cat-header .cat-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   10. Keyframe Animations
+   -------------------------------------------------------------------------- */
+@keyframes paw-drift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 200px 200px; }
+}
+
+@keyframes cat-bounce {
+  0%   { transform: translateY(3px) scale(1); }
+  30%  { transform: translateY(0) scale(1.05); }
+  60%  { transform: translateY(1px) scale(0.97); }
+  100% { transform: translateY(3px) scale(1); }
+}
+
+@keyframes paw-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 107, 139, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255, 107, 139, 0.8));
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shake-error {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   11. Utility Classes
+   -------------------------------------------------------------------------- */
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fade-slide-up 0.4s ease-out both;
+}
+
+.animate-bounce {
+  animation: cat-bounce 0.3s ease;
+}
+
+.animate-pulse {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Color utilities */
+.text-cat-gold  { color: var(--cat-gold) !important; }
+.text-cat-pink  { color: var(--cat-pink) !important; }
+.text-cat-mint  { color: var(--cat-mint) !important; }
+.text-cat-cream { color: var(--cat-cream) !important; }
+
+/* Background utilities */
+.bg-cat-dark  { background-color: var(--cat-dark) !important; }
+.bg-cat-cream { background-color: var(--cat-cream) !important; }
+.bg-cat-gold  { background-color: var(--cat-gold) !important; }
+.bg-cat-pink  { background-color: var(--cat-pink) !important; }
+
+/* Font utilities */
+.font-heading { font-family: var(--cat-font-heading) !important; }
+.font-body    { font-family: var(--cat-font-body) !important; }
+
+/* --------------------------------------------------------------------------
+   12. Responsive Overrides
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .cat-game-container {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .cat-btn {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
+
+  .cat-flip-card {
+    width: 180px;
+    height: 260px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   13. Scrollbar Styling (Webkit)
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cat-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cat-dark-card);
+  border-radius: 999px;
+  border: 2px solid var(--cat-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cat-gold);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cat-dark-card) var(--cat-dark);
+}
+
+/* --------------------------------------------------------------------------
+   14. Selection Styling
+   -------------------------------------------------------------------------- */
+::selection {
+  background: var(--cat-gold);
+  color: var(--cat-text-dark);
+}
+
+::-moz-selection {
+  background: var(--cat-gold);
+  color: var(--cat-text-dark);
+}
+
+/* --------------------------------------------------------------------------
+   15. Audio Controls & Header Widget
+   -------------------------------------------------------------------------- */
+.cat-audio-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cat-audio-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: var(--cat-dark-card);
+  color: var(--cat-cream);
+  border: 2px solid var(--cat-dark-deep);
+  border-radius: 50%;
+  box-shadow: 0 3px 0 var(--cat-dark-deep);
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.1s ease;
+}
+
+.cat-audio-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--cat-dark-deep);
+}
+
+.cat-audio-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--cat-dark-deep);
+}
+
+.cat-audio-btn.active {
+  background: var(--cat-gold) !important;
+  color: var(--cat-dark-deep) !important;
+  border-color: var(--cat-dark-deep);
+  box-shadow: 0 3px 0 var(--cat-dark-deep), 0 0 10px rgba(255, 184, 0, 0.45);
+}
+
+.cat-audio-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--cat-cream);
+  color: var(--cat-text-dark);
+  border: var(--cat-border);
+  border-radius: var(--cat-radius);
+  box-shadow: var(--cat-shadow);
+  padding: 0.75rem 1rem;
+  z-index: 110;
+  min-width: 170px;
+  animation: fade-slide-up 0.25s ease-out;
+}
+
+.cat-audio-popover input[type="range"] {
+  accent-color: var(--cat-gold);
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Warning state for soft validation (e.g. Word-Count Parity advice) */
+.cat-warning-border {
+  border-color: var(--cat-gold) !important;
+  box-shadow: 0 0 0 2px rgba(255, 184, 0, 0.35) !important;
+}
+
+.cat-warning-badge {
+  background: #FFF3CD;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "en_food_drinks",
+    "name": "Food & Beverages",
+    "pairs": [
+      { "topic": "Morning drinks", "civilianWord": "Coffee", "spyWord": "Tea" },
+      { "topic": "Fast food", "civilianWord": "Burger", "spyWord": "Pizza" },
+      { "topic": "Dessert", "civilianWord": "Ice cream", "spyWord": "Frozen yogurt" },
+      { "topic": "Snack", "civilianWord": "Popcorn", "spyWord": "Pretzels" },
+      { "topic": "Sauce", "civilianWord": "Ketchup", "spyWord": "Mustard" },
+      { "topic": "Breakfast", "civilianWord": "Pancake", "spyWord": "Waffle" },
+      { "topic": "Drink", "civilianWord": "Apple juice", "spyWord": "Orange juice" },
+      { "topic": "Pasta dish", "civilianWord": "Lasagna", "spyWord": "Ravioli" },
+      { "topic": "Sweet treat", "civilianWord": "Chocolate chip", "spyWord": "Sugar cookie" },
+      { "topic": "Warm beverage", "civilianWord": "Hot chocolate", "spyWord": "Warm cider" }
+    ]
+  },
+  {
+    "id": "en_animals",
+    "name": "Animal Kingdom",
+    "pairs": [
+      { "topic": "Pets", "civilianWord": "Cat", "spyWord": "Dog" },
+      { "topic": "Big cats", "civilianWord": "Lion", "spyWord": "Tiger" },
+      { "topic": "Marine life", "civilianWord": "Dolphin", "spyWord": "Whale" },
+      { "topic": "Birds", "civilianWord": "Eagle", "spyWord": "Falcon" },
+      { "topic": "Reptiles", "civilianWord": "Alligator", "spyWord": "Crocodile" },
+      { "topic": "Farm animals", "civilianWord": "Cow", "spyWord": "Horse" },
+      { "topic": "Small animals", "civilianWord": "Rabbit", "spyWord": "Hamster" },
+      { "topic": "Forest animals", "civilianWord": "Brown bear", "spyWord": "Black wolf" },
+      { "topic": "Cold weather", "civilianWord": "Polar bear", "spyWord": "Penguin bird" },
+      { "topic": "Insects", "civilianWord": "Butterfly", "spyWord": "Dragonfly" }
+    ]
+  },
+  {
+    "id": "en_daily_life",
+    "name": "Modern Life & Tech",
+    "pairs": [
+      { "topic": "Devices", "civilianWord": "Laptop", "spyWord": "Tablet" },
+      { "topic": "Transport", "civilianWord": "Airplane", "spyWord": "Helicopter" },
+      { "topic": "Communication", "civilianWord": "Phone call", "spyWord": "Video chat" },
+      { "topic": "Home appliance", "civilianWord": "Microwave", "spyWord": "Dishwasher" },
+      { "topic": "Clothing", "civilianWord": "Raincoat", "spyWord": "Windbreaker" },
+      { "topic": "Entertainment", "civilianWord": "Watch movies", "spyWord": "Play games" },
+      { "topic": "Office tools", "civilianWord": "Notebook", "spyWord": "Planner" },
+      { "topic": "Footwear", "civilianWord": "Sneakers", "spyWord": "Sandals" },
+      { "topic": "Bedding", "civilianWord": "Soft pillow", "spyWord": "Warm blanket" },
+      { "topic": "Vehicle", "civilianWord": "Motorcycle", "spyWord": "Scooter" }
+    ]
+  }
+]

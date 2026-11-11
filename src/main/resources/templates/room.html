@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Phòng #' + ${roomCode} + ' — ' + #{app.title}">Phòng Chờ — Tòa Án Mèo Đêm</title>
+
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Cat Theme CSS -->
+  <link rel="stylesheet" th:href="@{/css/cat-theme.css}">
+
+  <!-- HTMX 1.9.12 -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <!-- Self-hosted Zero-Dependency QRCode Generator -->
+  <script th:src="@{/js/qrcode.min.js}"></script>
+</head>
+<body>
+
+  <!-- Shared SVG Animations -->
+  <th:block th:replace="~{fragments/cat-illustrations :: cat-svg-styles}"></th:block>
+
+  <!-- Top Sticky Header with Audio Controls -->
+  <div th:replace="~{fragments/cat-header :: cat-navbar}"></div>
+
+  <!-- Main Game Container (Mobile-first max-width: 480px) -->
+  <div class="cat-game-container">
+
+    <!-- Room Header Banner -->
+    <div class="cat-card animate-fade-in p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge cat-badge-gold" th:if="${isHost}" th:text="#{lobby.host.badge}">👑 Chánh Án</span>
+          <span class="badge cat-badge-mint" th:unless="${isHost}">😺 Thành Viên</span>
+          <div class="cat-title fs-3 mt-1" style="color: var(--cat-dark);">
+            <span th:text="'#' + ${roomCode}">#ABCDE</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons: Copy Code & Show QR -->
+        <div class="d-flex gap-2">
+          <button type="button" class="cat-btn cat-btn-sm cat-btn-gold" id="btn-copy-code" title="Sao chép mã phòng">
+            <i class="bi bi-clipboard"></i>
+            <span class="d-none d-sm-inline">Sao chép</span>
+          </button>
+          <button type="button" class="cat-btn cat-btn-sm cat-btn-pink" id="btn-show-qr" data-bs-toggle="modal" data-bs-target="#qrModal" title="Mã QR vào phòng">
+            <i class="bi bi-qr-code"></i>
+            <span class="d-none d-sm-inline">QR</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Copy Success Toast Alert -->
+      <div id="copy-toast" class="alert alert-success border border-2 border-dark rounded-4 py-1 px-3 mt-2 mb-0 small text-center d-none"
+           style="background: #D3F9D8; color: #2B8A3E; font-weight: 600;">
+        <span th:text="#{lobby.copy.success}">Đã sao chép! Gửi cho bạn bè meow~ 🐾</span>
+      </div>
+    </div>
+
+    <!-- Current User Identity Banner (Always visible on all screens) -->
+    <div class="cat-card p-2 px-3 mb-3 d-flex align-items-center justify-content-between"
+         style="background: #FFFFFF; border: 2.5px solid var(--cat-dark); box-shadow: 0 3px 0 var(--cat-dark-deep);">
+      <div class="d-flex align-items-center gap-2">
+        <div class="cat-avatar-circle" style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;">
+          <div th:replace="~{fragments/cat-illustrations :: cat-avatar(${currentPlayer != null ? currentPlayer.avatarIndex : 1})}"></div>
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-1">
+            <span class="small text-muted fw-bold">Bạn là:</span>
+            <span class="fw-bold text-dark fs-6" style="font-family: var(--cat-font-heading);"
+                  th:text="${currentPlayer != null ? currentPlayer.nickname : 'Hoàng Thượng'}">
+              mèo béo
+            </span>
+            <span class="badge cat-badge-pink py-0 px-2 small ms-1">Bạn</span>
+          </div>
+          <div class="small">
+            <span th:if="${isHost}" class="badge cat-badge-gold py-0 px-2">👑 Chánh Án</span>
+            <span th:unless="${isHost}" class="badge bg-light text-dark border border-dark py-0 px-2">🐾 Thành Viên</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <span th:if="${currentPlayer != null and currentPlayer.isAlive}" class="badge cat-badge-mint py-1 px-2">🐾 Còn sống</span>
+        <span th:if="${currentPlayer != null and !currentPlayer.isAlive}" class="badge bg-secondary text-white py-1 px-2">☠️ Đã bị loại</span>
+      </div>
+    </div>
+
+    <!-- Dynamic Room Content Container -->
+    <div id="room-content-wrapper">
+
+      <!-- LOBBY VIEW (Shown when room.status.name() == 'LOBBY') -->
+      <div id="lobby-view-section" th:if="${room.status.name() == 'LOBBY'}">
+
+        <!-- Real-time Lobby Players List (Synced via SSE) -->
+        <div class="cat-card animate-fade-in p-3 mb-3" id="lobby-players-card">
+          <div id="lobby-players-content">
+            <!-- Default server-rendered player list before first SSE update -->
+            <div th:replace="~{fragments/lobby-fragments :: player-list}"></div>
+          </div>
+        </div>
+
+        <!-- Host Settings Card (Only shown if isHost == true) -->
+        <div th:if="${isHost}" class="cat-card animate-fade-in p-3 mb-3">
+          <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2" style="font-family: var(--cat-font-heading); color: var(--cat-dark);">
+            <span>⚙️</span>
+            <span th:text="#{lobby.settings.title}">Luật Lệ Tòa Án</span>
+          </h3>
+
+          <!-- Role Distribution Steppers (Civilian, Spy, Mr. White) -->
+          <div class="p-3 rounded-4 border border-2 border-dark mb-3" style="background: #FFF8E7; box-shadow: 0 3px 0 var(--cat-dark-deep);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="fw-bold small text-dark mb-0" style="font-family: var(--cat-font-heading);">
+                🎭 Phân Bổ Vai Trò Bầy Mèo:
+              </label>
+              <span id="role-total-badge" class="badge cat-badge-mint py-1 px-2">
+                0/0 mèo
+              </span>
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+              <!-- Civilian Stepper -->
+              <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-dark bg-white">
+                <div class="d-flex align-items-center gap-1">
+                  <span>😺</span>
+                  <span class="small fw-bold">Dân Thường:</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-dark px-2 py-0 fw-bold btn-role-step" data-role="civilians" data-delta="-1">-</button>
+                  <span class="fw-bold fs-6 font-monospace" id="count-civilians" style="min-width: 22px; text-align: center;">2</span>
+                  <button type="button" class="btn btn-sm btn-outline-dark px-2 py-0 fw-bold btn-role-step" data-role="civilians" data-delta="1">+</button>
+                </div>
+              </div>
+
+              <!-- Spy Stepper -->
+              <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-dark bg-white">
+                <div class="d-flex align-items-center gap-1">
+                  <span>🕶️</span>
+                  <span class="small fw-bold">Gián Điệp:</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-dark px-2 py-0 fw-bold btn-role-step" data-role="spies" data-delta="-1">-</button>
+                  <span class="fw-bold fs-6 font-monospace" id="count-spies" style="min-width: 22px; text-align: center;">1</span>
+                  <button type="button" class="btn btn-sm btn-outline-dark px-2 py-0 fw-bold btn-role-step" data-role="spies" data-delta="1">+</button>
+                </div>
+              </div>
+
+              <!-- Mr. White Stepper -->
+              <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-dark bg-white">
+                <div class="d-flex align-items-center gap-1">
+                  <span>📦</span>
+                  <span class="small fw-bold">Mèo Trắng (Mr. White):</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-dark px-2 py-0 fw-bold btn-role-step" data-role="mrWhites" data-delta="-1">-</button>
+                  <span class="fw-bold fs-6 font-monospace" id="count-mrWhites" style="min-width: 22px; text-align: center;">0</span>
+                  <button type="button" class="btn btn-sm btn-outline-dark px-2 py-0 fw-bold btn-role-step" data-role="mrWhites" data-delta="1">+</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Role Matching Status Alert -->
+            <div id="role-validation-msg" class="small mt-2 text-center fw-bold text-success">
+              ✓ Đã chọn khớp đủ số lượng vai trò cho bầy mèo!
+            </div>
+          </div>
+
+          <!-- Deck Selector & Custom Deck Modal Button -->
+          <div class="mb-3">
+            <label class="cat-label d-flex justify-content-between align-items-center">
+              <span th:text="#{lobby.settings.deck}">Chọn bộ từ</span>
+              <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 fw-bold text-dark" id="btn-open-deck-modal" data-bs-toggle="modal" data-bs-target="#customDeckModal">
+                ⚙️ Quản lý bộ từ
+              </button>
+            </label>
+            <select class="cat-select" id="select-active-deck">
+              <option th:each="d : ${availableDecks}"
+                      th:value="${d.id}"
+                      th:selected="${d.id == selectedDeckId}"
+                      th:text="${(d.custom ? '⭐ [Cá nhân] ' : '🍜 ') + d.name + ' (' + d.pairCount + ' cặp)'}">
+                🍜 Ẩm Thực Đường Phố (Mặc định)
+              </option>
+              <option th:if="${availableDecks == null or #lists.isEmpty(availableDecks)}" value="vi_street_food" selected>
+                🍜 Ẩm Thực Đường Phố (Mặc định)
+              </option>
+            </select>
+          </div>
+
+          <!-- Timer Selector -->
+          <div class="mb-3">
+            <label class="cat-label" th:text="#{lobby.settings.timer}">Thời gian phát biểu (giây)</label>
+            <select class="cat-select" id="select-timer">
+              <option value="30">30 giây (Siêu nhanh ⚡)</option>
+              <option value="45" selected>45 giây (Chuẩn mực ⚖️)</option>
+              <option value="60">60 giây (Thư thả ☕)</option>
+            </select>
+          </div>
+
+          <!-- Start Game Button for Host -->
+          <button type="button"
+                  class="cat-btn cat-btn-gold cat-btn-block fs-5 py-3"
+                  id="btn-start-game"
+                  onclick="window.handleStartGame && window.handleStartGame(this, event)">
+            <span>🔔</span>
+            <span th:text="#{lobby.start.btn}">Khai Mạc Phiên Tòa</span>
+          </button>
+        </div>
+
+        <!-- Waiting Banner for Non-Host Players -->
+        <div th:unless="${isHost}" class="cat-card text-center p-3 mb-3">
+          <div class="paw-icon fs-1 mb-2">🐾</div>
+          <div class="fw-bold fs-6 text-dark" th:text="#{lobby.waiting}">
+            Đang chờ các Hoàng thượng khác giá lâm...
+          </div>
+          <div class="small text-muted mt-1">Chánh Án sẽ sớm khai mạc phiên tòa khi đủ mèo!</div>
+        </div>
+
+      </div>
+
+      <!-- ACTIVE GAMEPLAY VIEW (Shown when room.status.name() != 'LOBBY') -->
+      <div id="game-view-section" th:if="${room.status.name() != 'LOBBY'}">
+        <div th:replace="~{fragments/game-fragments :: game-container}"></div>
+      </div>
+
+    </div>
+
+    <!-- Leave Room Button: Host can always leave (disbanding room). Normal players can only leave in LOBBY -->
+    <div class="text-center mb-4" th:if="${isHost or room.status.name() == 'LOBBY'}">
+      <button type="button" class="cat-btn cat-btn-sm cat-btn-outline text-light border-light" id="btn-leave-room">
+        <i class="bi bi-box-arrow-left"></i>
+        <span>🚪</span>
+        <span th:text="${isHost} ? #{lobby.leave.btn} : #{lobby.leave.btn}">Rời phòng</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- QR Code Modal Popover -->
+  <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content cat-card border-3 border-dark p-3 text-center">
+        <h3 class="h5 fw-bold mb-2 text-dark" id="qrModalLabel" style="font-family: var(--cat-font-heading);" th:text="#{lobby.qrcode.title}">
+          Quét mã QR vào phòng
+        </h3>
+        <p class="small text-muted mb-3" th:text="#{lobby.qrcode.hint}">
+          Mở camera điện thoại để vào yết kiến tức thì! 📱
+        </p>
+
+        <!-- Container for QR Code Rendering -->
+        <div id="qr-container" class="d-flex justify-content-center align-items-center my-2 p-2 bg-white rounded-3 border border-2 border-dark mx-auto" style="width: 220px; height: 220px;">
+          <!-- SVG QR Code is injected here -->
+        </div>
+
+        <div class="font-monospace fw-bold fs-4 my-2 text-dark" th:text="'#' + ${roomCode}">#ABCDE</div>
+
+        <button type="button" class="cat-btn cat-btn-sm cat-btn-gold mt-2 w-100" data-bs-dismiss="modal">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Deck Management Modal (Host Only) -->
+  <div th:if="${isHost}" th:replace="~{fragments/custom-deck-modal :: custom-deck-modal}"></div>
+
+  <!-- Global Room & App Variables (Defined before any scripts run) -->
+  <script th:inline="javascript">
+    window.__contextPath = /*[[@{/}]]*/ '/spy-game/';
+    window.__roomCode = /*[[${roomCode}]]*/ 'ABCDE';
+    window.__isHost = /*[[${isHost}]]*/ false;
+    window.__playerId = /*[[${playerId}]]*/ '';
+    window.__selectedDeckId = /*[[${selectedDeckId}]]*/ 'vi_street_food';
+  </script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Cat Audio Script -->
+  <script th:src="@{/js/cat-audio.js}"></script>
+  <!-- Cat Deck Script -->
+  <script th:src="@{/js/cat-deck.js}"></script>
+
+  <!-- Room Logic: QR Code, Real-time Native SSE Sync, Disband, Start -->
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      const roomCode = /*[[${roomCode}]]*/ 'ABCDE';
+      const isHost = /*[[${isHost}]]*/ false;
+      const playerId = /*[[${playerId}]]*/ '';
+      const contextPath = /*[[@{/}]]*/ '/';
+      const basePath = contextPath.endsWith('/') ? contextPath : (contextPath + '/');
+
+      // 1. Initialize Smart Room Audio (Host autoplays BGM, member stays silent)
+      CatAudio.setupSmartAudio({ isHost: isHost });
+
+      // 2. Generate crisp vector SVG QR Code
+      function renderQRCode() {
+        const qrContainer = document.getElementById('qr-container');
+        if (qrContainer && window.CatQRCode) {
+          const joinUrl = window.location.origin + basePath + '?join=' + encodeURIComponent(roomCode);
+          window.CatQRCode.renderTo(qrContainer, joinUrl, {
+            size: 200,
+            margin: 2,
+            colorDark: '#1A162B',
+            colorLight: '#FFFFFF'
+          });
+        }
+      }
+
+      // Render immediately
+      renderQRCode();
+
+      // Also render when modal opens or QR button is clicked
+      const qrModal = document.getElementById('qrModal');
+      if (qrModal) {
+        qrModal.addEventListener('shown.bs.modal', renderQRCode);
+      }
+      const qrBtn = document.getElementById('btn-show-qr');
+      if (qrBtn) {
+        qrBtn.addEventListener('click', renderQRCode);
+      }
+
+      // 3. Copy Code Button
+      const copyBtn = document.getElementById('btn-copy-code');
+      const copyToast = document.getElementById('copy-toast');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          navigator.clipboard.writeText(roomCode).then(() => {
+            if (window.CatAudio) CatAudio.playMeow();
+            if (copyToast) {
+              copyToast.classList.remove('d-none');
+              setTimeout(() => copyToast.classList.add('d-none'), 3000);
+            }
+          }).catch(err => {
+            prompt('Sao chép mã phòng:', roomCode);
+          });
+        });
+      }
+
+      // 4. Leave / Disband Room Button
+      const leaveBtn = document.getElementById('btn-leave-room');
+      if (leaveBtn) {
+        leaveBtn.addEventListener('click', async function() {
+          const msg = isHost ? 'Chánh Án muốn hủy và giải tán phiên tòa này sao? 😿' : 'Hoàng thượng thật sự muốn rời phiên tòa sao? 😿';
+          if (confirm(msg)) {
+            leaveBtn.disabled = true;
+            try {
+              await fetch(`${basePath}api/rooms/${roomCode}/leave?playerId=${encodeURIComponent(playerId)}`, {
+                method: 'POST'
+              });
+            } catch (e) {}
+            window.location.href = basePath;
+          }
+        });
+      }
+
+      // 4b. Role Distribution Configuration (Host only)
+      let roleCivilians = 2;
+      let roleSpies = 1;
+      let roleMrWhites = 0;
+
+      function getLobbyPlayerCount() {
+        const listContainer = document.getElementById('lobby-player-list-container');
+        return listContainer ? parseInt(listContainer.getAttribute('data-player-count') || '1', 10) : 1;
+      }
+
+      function updateRoleCounters() {
+        const total = getLobbyPlayerCount();
+        const civEl = document.getElementById('count-civilians');
+        const spyEl = document.getElementById('count-spies');
+        const whiteEl = document.getElementById('count-mrWhites');
+        const badgeEl = document.getElementById('role-total-badge');
+        const msgEl = document.getElementById('role-validation-msg');
+        const startBtn = document.getElementById('btn-start-game');
+
+        if (!civEl || !spyEl || !whiteEl) return;
+
+        // Auto-initialize defaults based on player count if not customized
+        if (!civEl.dataset.customized) {
+          if (total >= 7) {
+            roleSpies = 2;
+            roleMrWhites = 1;
+          } else if (total >= 4) {
+            roleSpies = 1;
+            roleMrWhites = 1;
+          } else {
+            roleSpies = 1;
+            roleMrWhites = 0;
+          }
+          roleCivilians = Math.max(0, total - roleSpies - roleMrWhites);
+        }
+
+        civEl.textContent = roleCivilians;
+        spyEl.textContent = roleSpies;
+        whiteEl.textContent = roleMrWhites;
+
+        const sum = roleCivilians + roleSpies + roleMrWhites;
+        if (badgeEl) {
+          badgeEl.textContent = `${sum}/${total} mèo`;
+        }
+
+        const isMatched = (sum === total) && (total >= 3);
+
+        if (badgeEl) {
+          badgeEl.classList.toggle('cat-badge-mint', isMatched);
+          badgeEl.classList.toggle('cat-badge-pink', !isMatched);
+        }
+
+        if (msgEl) {
+          if (total < 3) {
+            msgEl.textContent = `🐾 Cần ít nhất 3 con mèo để mở phiên tòa xử án (hiện có ${total}/3)!`;
+            msgEl.className = 'small mt-2 text-center fw-bold text-danger';
+          } else if (sum === total) {
+            msgEl.textContent = `✓ Đã khớp đủ ${sum}/${total} vai trò! Phiên tòa sẵn sàng khai mạc.`;
+            msgEl.className = 'small mt-2 text-center fw-bold text-success';
+          } else if (sum < total) {
+            msgEl.textContent = `⚠️ Đang thiếu ${total - sum} vai trò! Tổng vai trò (${sum}) chưa đủ ${total} mèo.`;
+            msgEl.className = 'small mt-2 text-center fw-bold text-danger';
+          } else {
+            msgEl.textContent = `⚠️ Đang thừa ${sum - total} vai trò! Tổng vai trò (${sum}) vượt quá ${total} mèo.`;
+            msgEl.className = 'small mt-2 text-center fw-bold text-danger';
+          }
+        }
+
+        if (startBtn) {
+          startBtn.disabled = !isMatched;
+          startBtn.classList.toggle('opacity-75', !isMatched);
+        }
+      }
+
+      function bindRoleSteppers() {
+        document.querySelectorAll('.btn-role-step').forEach(btn => {
+          if (btn.dataset.bound === 'true') return;
+          btn.dataset.bound = 'true';
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const role = btn.getAttribute('data-role');
+            const delta = parseInt(btn.getAttribute('data-delta') || '0', 10);
+            const total = getLobbyPlayerCount();
+
+            const civEl = document.getElementById('count-civilians');
+            if (civEl) civEl.dataset.customized = 'true';
+
+            if (role === 'civilians') {
+              roleCivilians = Math.max(0, Math.min(total, roleCivilians + delta));
+            } else if (role === 'spies') {
+              roleSpies = Math.max(0, Math.min(total, roleSpies + delta));
+            } else if (role === 'mrWhites') {
+              roleMrWhites = Math.max(0, Math.min(total, roleMrWhites + delta));
+            }
+            if (window.CatAudio) CatAudio.playMeow();
+            updateRoleCounters();
+          });
+        });
+      }
+
+      // 5. Start Game Button (Host only)
+      let isStartingGame = false;
+
+      window.handleStartGame = async function(startBtn, e) {
+        if (e) e.preventDefault();
+        if (!startBtn) startBtn = document.getElementById('btn-start-game');
+        if (!startBtn) return;
+
+        // Validate minimum 3 players
+        const listContainer = document.getElementById('lobby-player-list-container');
+        const count = listContainer ? parseInt(listContainer.getAttribute('data-player-count') || '1', 10) : 1;
+        if (count < 3) {
+          if (window.CatAudio) CatAudio.playHiss();
+          alert(`😿 Cần ít nhất 3 con mèo để mở phiên tòa xử án meow!\n\n(Hiện tại phòng chỉ mới có ${count}/3 mèo. Hãy rủ thêm bạn bè hoặc mở thêm tab ẩn danh để đủ 3 người chơi nhé!)`);
+          return;
+        }
+
+        // Validate role count matching
+        const total = count;
+        const sum = roleCivilians + roleSpies + roleMrWhites;
+        if (sum !== total) {
+          if (window.CatAudio) CatAudio.playHiss();
+          alert(`⚠️ Tổng số vai trò đã chọn (${sum}) chưa khớp với số người trong phòng (${total})!\nVui lòng dùng các nút [-]/[+] để điều chỉnh cho khớp ${total}/${total} vai trò.`);
+          return;
+        }
+
+        const deckSelect = document.getElementById('select-active-deck');
+        const timerSelect = document.getElementById('select-timer');
+
+        const deckId = deckSelect ? deckSelect.value : 'vi_street_food';
+        const timer = timerSelect ? parseInt(timerSelect.value, 10) : 45;
+
+        startBtn.disabled = true;
+        const originalContent = startBtn.innerHTML;
+        startBtn.innerHTML = '<span>⏳ Đang chia bài &amp; vào phiên tòa...</span>';
+
+        isStartingGame = true;
+
+        try {
+          const url = `${basePath}api/rooms/${roomCode}/start?hostId=${encodeURIComponent(playerId)}&deckId=${encodeURIComponent(deckId)}&timer=${timer}&civilians=${roleCivilians}&spies=${roleSpies}&mrWhites=${roleMrWhites}&mrWhite=${roleMrWhites > 0}`;
+          const res = await fetch(url, { method: 'POST' });
+          const data = await res.json();
+
+          if (res.ok) {
+            if (window.CatAudio) CatAudio.playGong();
+            window.location.reload();
+          } else {
+            isStartingGame = false;
+            if (window.CatAudio) CatAudio.playHiss();
+            alert(data.message || data.error || 'Chưa đủ điều kiện bắt đầu!');
+            startBtn.disabled = false;
+            startBtn.innerHTML = originalContent;
+          }
+        } catch (err) {
+          if (err.name === 'AbortError' || isStartingGame) {
+            console.log('Start game fetch aborted due to navigation/reload');
+            return;
+          }
+          isStartingGame = false;
+          if (window.CatAudio) CatAudio.playHiss();
+          alert('Lỗi kết nối khi khai mạc phiên tòa!');
+          startBtn.disabled = false;
+          startBtn.innerHTML = originalContent;
+        }
+      };
+
+      function bindStartGameBtn() {
+        const startBtn = document.getElementById('btn-start-game');
+        if (startBtn) {
+          if (startBtn.dataset.bound === 'true') return;
+          startBtn.dataset.bound = 'true';
+          startBtn.addEventListener('click', function(e) {
+            window.handleStartGame(startBtn, e);
+          });
+        }
+      }
+      bindStartGameBtn();
+
+      // 6. 3D Card Hold-to-Peek
+      function bindFlipCard() {
+        const flipCard = document.getElementById('secret-flip-card');
+        if (!flipCard) return;
+        let isCardHeld = false;
+
+        function onCardDown(e) {
+          e.preventDefault();
+          if (!isCardHeld) {
+            isCardHeld = true;
+            flipCard.classList.add('flipped');
+            if (window.CatAudio) CatAudio.playPurrFlip();
+          }
+        }
+
+        function onCardUp(e) {
+          if (isCardHeld) {
+            isCardHeld = false;
+            flipCard.classList.remove('flipped');
+          }
+        }
+
+        flipCard.addEventListener('mousedown', onCardDown);
+        window.addEventListener('mouseup', onCardUp);
+        flipCard.addEventListener('touchstart', onCardDown, { passive: false });
+        window.addEventListener('touchend', onCardUp);
+        window.addEventListener('touchcancel', onCardUp);
+      }
+
+      // 7. Penalty Wheel Canvas & Animation
+      function initPenaltyWheel() {
+        const canvas = document.getElementById('penalty-wheel-canvas');
+        const spinBtn = document.getElementById('btn-spin-wheel');
+        if (!canvas || !spinBtn) return;
+        const ctx = canvas.getContext('2d');
+        const numSlices = 8;
+        const colors = ['#FFB800', '#FF6B8B', '#00E5A3', '#B197FC', '#FFD43B', '#FF8787', '#69DB7C', '#4DABF7'];
+        const emojis = ['🐾', '🥛', '☀️', '🐱', '🎶', '😸', '🌀', '😼'];
+
+        function drawWheel(angle) {
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2;
+          const r = cx - 6;
+          const arc = (2 * Math.PI) / numSlices;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (let i = 0; i < numSlices; i++) {
+            const sliceAngle = angle + i * arc;
+            ctx.beginPath();
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, sliceAngle, sliceAngle + arc);
+            ctx.lineTo(cx, cy);
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#120E1E';
+            ctx.stroke();
+
+            // Draw emoji icon on each slice
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(sliceAngle + arc / 2);
+            ctx.textAlign = 'right';
+            ctx.font = '22px sans-serif';
+            ctx.fillText(emojis[i % emojis.length], r - 20, 8);
+            ctx.restore();
+          }
+
+          // Center Hub
+          ctx.beginPath();
+          ctx.arc(cx, cy, 24, 0, 2 * Math.PI);
+          ctx.fillStyle = '#FFF8E7';
+          ctx.fill();
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = '#120E1E';
+          ctx.stroke();
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🐾', cx, cy);
+        }
+
+        let currentAngle = 0;
+        drawWheel(currentAngle);
+
+        spinBtn.addEventListener('click', function() {
+          spinBtn.disabled = true;
+          if (window.CatAudio) CatAudio.playPenaltySpin();
+
+          const totalSpinRads = (Math.PI * 2 * 6) + Math.random() * Math.PI * 2;
+          const duration = 3200;
+          const start = performance.now();
+
+          function animateSpin(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const ease = 1 - Math.pow(1 - progress, 3);
+            currentAngle = ease * totalSpinRads;
+            drawWheel(currentAngle);
+
+            if (progress < 1) {
+              requestAnimationFrame(animateSpin);
+            } else {
+              spinBtn.disabled = false;
+              if (window.CatAudio) CatAudio.playMeow();
+              const box = document.getElementById('penalty-result-box');
+              if (box) {
+                box.classList.add('animate-bounce');
+                setTimeout(() => box.classList.remove('animate-bounce'), 1200);
+              }
+            }
+          }
+          requestAnimationFrame(animateSpin);
+        });
+      }
+
+      // 7b. Turn Discussion Countdown Timer
+      let turnCountdownInterval = null;
+
+      function initTurnCountdown() {
+        const timerText = document.getElementById('turn-timer-text');
+        const timerBadge = document.getElementById('turn-timer-badge');
+        if (!timerText) return;
+
+        if (turnCountdownInterval) {
+          clearInterval(turnCountdownInterval);
+          turnCountdownInterval = null;
+        }
+
+        const totalSeconds = parseInt(timerText.getAttribute('data-seconds') || '45', 10);
+        let secondsLeft = totalSeconds;
+        timerText.textContent = secondsLeft + 's';
+
+        if (timerBadge) {
+          timerBadge.classList.remove('bg-danger', 'text-white', 'animate-pulse');
+          timerBadge.classList.add('cat-badge-mint');
+        }
+
+        turnCountdownInterval = setInterval(function() {
+          secondsLeft--;
+          if (secondsLeft >= 0) {
+            timerText.textContent = secondsLeft + 's';
+
+            // Warning for last 5 seconds
+            if (secondsLeft <= 5 && secondsLeft > 0) {
+              if (window.CatAudio) CatAudio.playTick();
+              if (timerBadge) {
+                timerBadge.classList.remove('cat-badge-mint');
+                timerBadge.classList.add('bg-danger', 'text-white', 'animate-pulse');
+              }
+            }
+          }
+
+          if (secondsLeft <= 0) {
+            clearInterval(turnCountdownInterval);
+            timerText.textContent = '0s';
+            if (window.CatAudio) CatAudio.playHiss();
+          }
+        }, 1000);
+      }
+
+      // 8. Bind all dynamic Game View buttons & forms
+      let lastGuessInterval = null;
+
+      function bindGameEvents() {
+        bindFlipCard();
+        bindStartGameBtn();
+        initPenaltyWheel();
+        initTurnCountdown();
+
+        // Host Next Speaker
+        const nextBtn = document.getElementById('btn-next-speaker');
+        if (nextBtn) {
+          nextBtn.addEventListener('click', async function() {
+            nextBtn.disabled = true;
+            try {
+              await fetch(`${basePath}api/rooms/${roomCode}/next-speaker?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+            } catch (e) {
+              nextBtn.disabled = false;
+            }
+          });
+        }
+
+        // Host Start Voting
+        const startVotingBtn = document.getElementById('btn-start-voting');
+        if (startVotingBtn) {
+          startVotingBtn.addEventListener('click', async function() {
+            startVotingBtn.disabled = true;
+            try {
+              await fetch(`${basePath}api/rooms/${roomCode}/start-voting?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+            } catch (e) {
+              startVotingBtn.disabled = false;
+            }
+          });
+        }
+
+        // Candidate Vote buttons
+        document.querySelectorAll('.btn-vote-candidate').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const targetId = btn.getAttribute('data-target-id');
+            if (!targetId) return;
+            if (window.CatAudio) CatAudio.playHiss();
+            btn.disabled = true;
+            try {
+              await fetch(`${basePath}api/rooms/${roomCode}/vote?voterId=${encodeURIComponent(playerId)}&targetId=${encodeURIComponent(targetId)}`, {
+                method: 'POST'
+              });
+            } catch (e) {
+              btn.disabled = false;
+            }
+          });
+        });
+
+        // Host Conclude Vote
+        const concludeBtn = document.getElementById('btn-conclude-vote');
+        if (concludeBtn) {
+          concludeBtn.addEventListener('click', async function() {
+            concludeBtn.disabled = true;
+            try {
+              await fetch(`${basePath}api/rooms/${roomCode}/conclude-vote?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+            } catch (e) {
+              concludeBtn.disabled = false;
+            }
+          });
+        }
+
+        // Last Guess Submission
+        window.handleLastGuessSubmit = async function(e) {
+          if (e) e.preventDefault();
+          const guessInput = document.getElementById('last-guess-input');
+          const submitGuessBtn = document.getElementById('btn-submit-last-guess');
+          const feedbackEl = document.getElementById('last-guess-feedback');
+          if (!guessInput) return;
+          const val = guessInput.value.trim();
+          if (!val) return;
+
+          if (submitGuessBtn) submitGuessBtn.disabled = true;
+          if (feedbackEl) feedbackEl.classList.add('d-none');
+
+          try {
+            const res = await fetch(`${basePath}api/rooms/${roomCode}/last-guess?playerId=${encodeURIComponent(playerId)}&guess=${encodeURIComponent(val)}`, {
+              method: 'POST'
+            });
+            const data = await res.json();
+            if (data.success) {
+              if (window.CatAudio) CatAudio.playMeow();
+              if (feedbackEl) {
+                feedbackEl.textContent = '🎉 CHÍNH XÁC! LẬT KÈO CHIẾN THẮNG! 🐾';
+                feedbackEl.className = 'small mt-2 text-success fw-bold';
+                feedbackEl.classList.remove('d-none');
+              }
+            } else {
+              if (window.CatAudio) CatAudio.playHiss();
+              if (feedbackEl) {
+                feedbackEl.textContent = '😿 ' + (data.message || 'Mật lệnh chưa chính xác! Hãy thử lại nhanh!');
+                feedbackEl.className = 'small mt-2 text-danger fw-bold';
+                feedbackEl.classList.remove('d-none');
+              }
+              if (submitGuessBtn) submitGuessBtn.disabled = false;
+              guessInput.focus();
+              guessInput.select();
+            }
+          } catch (err) {
+            if (submitGuessBtn) submitGuessBtn.disabled = false;
+          }
+        };
+
+        const submitGuessBtn = document.getElementById('btn-submit-last-guess');
+        const guessInput = document.getElementById('last-guess-input');
+        if (submitGuessBtn && guessInput) {
+          submitGuessBtn.addEventListener('click', window.handleLastGuessSubmit);
+          guessInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') window.handleLastGuessSubmit(e);
+          });
+        }
+
+        // 20s Countdown Timer for Last Guess
+        const countdownEl = document.getElementById('countdown-timer-num');
+        if (countdownEl) {
+          if (lastGuessInterval) clearInterval(lastGuessInterval);
+          let secondsLeft = 20;
+          lastGuessInterval = setInterval(function() {
+            secondsLeft--;
+            if (countdownEl) countdownEl.textContent = secondsLeft;
+            if (window.CatAudio) CatAudio.playTick();
+            if (secondsLeft <= 0) {
+              clearInterval(lastGuessInterval);
+              // Trigger timeout API so game transitions to RESULT or ROUND_SUMMARY
+              fetch(`${basePath}api/rooms/${roomCode}/last-guess-timeout`, { method: 'POST' });
+            }
+          }, 1000);
+        }
+
+        // Host Next Round from ROUND_SUMMARY
+        window.handleNextRound = async function(e) {
+          if (e) e.preventDefault();
+          const nextRoundBtn = document.getElementById('btn-next-round');
+          if (nextRoundBtn) nextRoundBtn.disabled = true;
+          try {
+            await fetch(`${basePath}api/rooms/${roomCode}/next-round?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+          } catch (err) {
+            if (nextRoundBtn) nextRoundBtn.disabled = false;
+          }
+        };
+
+        const nextRoundBtn = document.getElementById('btn-next-round');
+        if (nextRoundBtn) {
+          nextRoundBtn.addEventListener('click', window.handleNextRound);
+        }
+
+        // Host Restart Game
+        const restartBtn = document.getElementById('btn-restart-game');
+        if (restartBtn) {
+          restartBtn.addEventListener('click', async function() {
+            if (confirm('Chánh Án muốn bắt đầu lại ván chơi mới chứ? 🔄')) {
+              restartBtn.disabled = true;
+              try {
+                await fetch(`${basePath}api/rooms/${roomCode}/restart?hostId=${encodeURIComponent(playerId)}`, { method: 'POST' });
+              } catch (e) {
+                restartBtn.disabled = false;
+              }
+            }
+          });
+        }
+      }
+
+      bindGameEvents();
+
+      // 9. Real-Time Room SSE Synchronization (Native Browser EventSource)
+      const sseUrl = `${basePath}api/rooms/${roomCode}/events`;
+      let eventSource = null;
+
+      function connectRoomSSE() {
+        if (eventSource) {
+          try { eventSource.close(); } catch (e) {}
+        }
+        eventSource = new EventSource(sseUrl);
+
+        eventSource.onopen = function() {
+          console.log('🐾 [SSE] Connected to Room:', roomCode);
+        };
+
+        // Event: lobby-updated (player joined or left)
+        eventSource.addEventListener('lobby-updated', async function() {
+          console.log('🐾 [SSE] lobby-updated received');
+          if (window.CatAudio) CatAudio.playMeow();
+          const lobbyContent = document.getElementById('lobby-players-content');
+          if (lobbyContent) {
+            await refreshLobbyPlayers();
+          }
+        });
+
+        // Event: game-started
+        eventSource.addEventListener('game-started', function() {
+          console.log('🐾 [SSE] game-started received');
+          if (window.CatAudio) CatAudio.playGong();
+          if (!isStartingGame) {
+            window.location.reload();
+          }
+        });
+
+        // Event: turn-updated
+        eventSource.addEventListener('turn-updated', async function() {
+          console.log('🐾 [SSE] turn-updated received');
+          await refreshGameView();
+        });
+
+        // Event: voting-started
+        eventSource.addEventListener('voting-started', async function() {
+          console.log('🐾 [SSE] voting-started received');
+          if (window.CatAudio) CatAudio.playHiss();
+          await refreshGameView();
+        });
+
+        // Event: vote-updated
+        eventSource.addEventListener('vote-updated', async function() {
+          console.log('🐾 [SSE] vote-updated received');
+          await refreshGameView();
+        });
+
+        // Event: last-guess-started
+        eventSource.addEventListener('last-guess-started', async function() {
+          console.log('🐾 [SSE] last-guess-started received');
+          if (window.CatAudio) CatAudio.playHiss();
+          await refreshGameView();
+        });
+
+        // Event: game-ended
+        eventSource.addEventListener('game-ended', async function() {
+          console.log('🐾 [SSE] game-ended received');
+          if (window.CatAudio) CatAudio.playGong();
+          await refreshGameView();
+        });
+
+        // Event: game-restarted
+        eventSource.addEventListener('game-restarted', function() {
+          console.log('🐾 [SSE] game-restarted received');
+          if (window.CatAudio) CatAudio.playMeow();
+          window.location.reload();
+        });
+
+        // Event: room-closed (Host disbanded the room)
+        eventSource.addEventListener('room-closed', function() {
+          console.log('🐾 [SSE] room-closed received');
+          if (window.CatAudio) CatAudio.playHiss();
+          alert('😿 Chánh Án đã hủy phòng hoặc giải tán phiên tòa! Đang trở về màn hình chính...');
+          window.location.href = basePath;
+        });
+
+        eventSource.onerror = function(err) {
+          console.warn('🐾 [SSE] Reconnecting in background...', err);
+        };
+      }
+
+      async function refreshLobbyPlayers() {
+        try {
+          const res = await fetch(`${basePath}api/rooms/${roomCode}/lobby-players`);
+          if (res.ok) {
+            const html = await res.text();
+            const content = document.getElementById('lobby-players-content');
+            if (content) {
+              content.innerHTML = html;
+            }
+            const listContainer = document.getElementById('lobby-player-list-container');
+            if (listContainer) {
+              const status = listContainer.getAttribute('data-room-status');
+              if (status && status !== 'LOBBY') {
+                window.location.reload();
+                return;
+              }
+              bindRoleSteppers();
+              updateRoleCounters();
+            }
+          } else if (res.status === 404) {
+            alert('😿 Phiên tòa đã bị hủy hoặc giải tán!');
+            window.location.href = basePath;
+          }
+        } catch (err) {
+          console.error('Failed to refresh lobby players:', err);
+        }
+      }
+
+      // Resilient 2.5s polling while in LOBBY to guarantee player sync even if SSE is blocked
+      const lobbyPollInterval = setInterval(async function() {
+        const lobbyContent = document.getElementById('lobby-players-content');
+        if (lobbyContent) {
+          await refreshLobbyPlayers();
+        } else {
+          clearInterval(lobbyPollInterval);
+        }
+      }, 2500);
+
+      async function refreshGameView() {
+        try {
+          const res = await fetch(`${basePath}api/rooms/${roomCode}/game-view?playerId=${encodeURIComponent(playerId)}`);
+          if (res.ok) {
+            const html = await res.text();
+            const wrapper = document.getElementById('room-content-wrapper');
+            if (wrapper) {
+              wrapper.innerHTML = html;
+              bindGameEvents();
+            }
+          } else if (res.status === 404) {
+            alert('😿 Phiên tòa đã bị hủy hoặc giải tán!');
+            window.location.href = basePath;
+          }
+        } catch (err) {
+          console.error('Failed to refresh game view:', err);
+        }
+      }
+
+      bindRoleSteppers();
+      updateRoleCounters();
+      connectRoomSSE();
+
+      // Close SSE connection when navigating away
+      window.addEventListener('beforeunload', function() {
+        if (eventSource) {
+          try { eventSource.close(); } catch (e) {}
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
