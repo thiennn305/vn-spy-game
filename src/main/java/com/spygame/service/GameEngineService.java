@@ -238,8 +238,9 @@ public class GameEngineService {
 
         Map<String, String> votes = room.getVotes();
         if (votes.isEmpty()) {
-            // No votes cast -> return to playing
-            room.setStatus(RoomStatus.PLAYING);
+            // No votes cast -> advance to ROUND_SUMMARY without elimination
+            room.setEliminatedPlayerId(null);
+            room.setStatus(RoomStatus.ROUND_SUMMARY);
             room.clearVotes();
             return new VotingResult(true, null, "Không có phiếu bầu nào được ghi nhận!");
         }
@@ -253,7 +254,8 @@ public class GameEngineService {
                 .collect(Collectors.groupingBy(tid -> tid, Collectors.counting()));
 
         if (countMap.isEmpty()) {
-            room.setStatus(RoomStatus.PLAYING);
+            room.setEliminatedPlayerId(null);
+            room.setStatus(RoomStatus.ROUND_SUMMARY);
             room.clearVotes();
             return new VotingResult(true, null, "Không có phiếu hợp lệ!");
         }
@@ -268,8 +270,8 @@ public class GameEngineService {
         if (topTargets.size() > 1) {
             room.setEliminatedPlayerId(null);
             room.clearVotes();
-            room.setStatus(RoomStatus.PLAYING);
-            log.info("Tie vote in room {} between {} players ({} votes each).",
+            room.setStatus(RoomStatus.ROUND_SUMMARY);
+            log.info("Tie vote in room {} between {} players ({} votes each). Advancing to ROUND_SUMMARY.",
                     room.getRoomCode(), topTargets.size(), maxVotes);
             return new VotingResult(true, null, "Hòa phiếu bầu! Chưa có mèo nào bị kết tội.");
         }
@@ -278,7 +280,8 @@ public class GameEngineService {
         String eliminatedId = topTargets.get(0);
         Player eliminated = room.getPlayer(eliminatedId);
         if (eliminated == null) {
-            room.setStatus(RoomStatus.PLAYING);
+            room.setEliminatedPlayerId(null);
+            room.setStatus(RoomStatus.ROUND_SUMMARY);
             room.clearVotes();
             return new VotingResult(true, null, "Lỗi xác định mèo bị loại!");
         }
@@ -524,6 +527,20 @@ public class GameEngineService {
      */
     public String pickRandomPenalty() {
         return PENALTIES.get(random.nextInt(PENALTIES.size()));
+    }
+
+    /**
+     * Spins and sets a new random cat-themed penalty different from the current one.
+     */
+    public synchronized String spinNewPenalty(GameRoom room) {
+        String current = room.getSelectedPenalty();
+        List<String> pool = PENALTIES.stream()
+                .filter(p -> !p.equals(current))
+                .collect(Collectors.toList());
+        String newPenalty = pool.isEmpty() ? PENALTIES.get(0) : pool.get(random.nextInt(pool.size()));
+        room.setSelectedPenalty(newPenalty);
+        log.info("Room {}: Host spun new penalty: {}", room.getRoomCode(), newPenalty);
+        return newPenalty;
     }
 
     /**

@@ -237,13 +237,14 @@ public class RoomApiController {
 
         try {
             boolean allVoted = gameEngineService.submitVote(room, voterId, targetId);
-            sseService.broadcastVoteUpdated(code);
 
             if (allVoted) {
                 concludeVotingInternal(room);
+            } else {
+                sseService.broadcastVoteUpdated(code);
             }
 
-            return ResponseEntity.ok(Map.of("status", "ok", "allVoted", allVoted));
+            return ResponseEntity.ok(Map.of("status", "ok", "allVoted", allVoted, "roomStatus", room.getStatus()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -326,6 +327,22 @@ public class RoomApiController {
     }
 
     /**
+     * Host action to spin a new penalty on the result screen.
+     */
+    @PostMapping("/{roomCode}/spin-penalty")
+    @ResponseBody
+    public ResponseEntity<?> spinPenalty(@PathVariable String roomCode, @RequestParam String hostId) {
+        String code = roomCode.trim().toUpperCase();
+        GameRoom room = roomService.getRoom(code);
+        if (room == null) return ResponseEntity.badRequest().body(Map.of("error", "error.room.notfound"));
+        if (!room.getHostId().equals(hostId)) return ResponseEntity.badRequest().body(Map.of("error", "error.not_host"));
+
+        String newPenalty = gameEngineService.spinNewPenalty(room);
+        sseService.broadcastPenaltyUpdated(code, newPenalty);
+        return ResponseEntity.ok(Map.of("status", "ok", "penalty", newPenalty));
+    }
+
+    /**
      * Restart game back to lobby.
      */
     @PostMapping("/{roomCode}/restart")
@@ -353,6 +370,19 @@ public class RoomApiController {
         if (room == null) {
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Room not found");
         }
+
+        // Auto-resolve expired LAST_GUESS on server-side if 20s has elapsed
+        if (room.getStatus() == RoomStatus.LAST_GUESS && room.getLastGuessEndTime() != null) {
+            if (java.time.Instant.now().isAfter(room.getLastGuessEndTime())) {
+                gameEngineService.handleLastGuessTimeout(room);
+                if (room.getStatus() == RoomStatus.RESULT) {
+                    sseService.broadcastGameEnded(code);
+                } else {
+                    sseService.broadcastTurnUpdated(code);
+                }
+            }
+        }
+
         Player current = (playerId != null) ? room.getPlayer(playerId) : null;
         boolean isHost = current != null && current.isHost();
 
